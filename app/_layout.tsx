@@ -65,9 +65,10 @@ function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Profile", // Updated per style guide navigation pattern  
+          title: "Settings",
+          headerTitle: "Settings",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={24} color={color} />
+            <Ionicons name="settings" size={24} color={color} />
           ),
         }}
       />
