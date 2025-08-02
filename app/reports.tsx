@@ -1,13 +1,14 @@
 import { StyleSheet, Text, View } from "react-native";
 
-export default function Home() {
+export default function Reports() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Welcome to Ninja Track</Text>
+        <Text style={styles.title}>Reports</Text>
       </View>
       <View style={styles.content}>
-        <Text style={styles.subtitle}>Your productivity tracking companion</Text>
+        <Text style={styles.subtitle}>Your productivity reports and analytics will appear here.</Text>
+        <Text style={styles.placeholder}>Coming soon...</Text>
       </View>
     </View>
   );
@@ -42,5 +43,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#8E8E93",
     textAlign: "center",
+    marginBottom: 20,
+  },
+  placeholder: {
+    fontSize: 14,
+    color: "#C7C7CC",
+    fontStyle: "italic",
   },
 });
