@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { categoryUtils } from '../../utils/categoryStorage';
 import { Category } from '../../utils/types';
+import { useTheme, createTextStyle } from '../../utils/theme';
 
 const PREDEFINED_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57',
@@ -21,6 +22,7 @@ const PREDEFINED_COLORS = [
 ];
 
 export default function Categories() {
+  const { theme } = useTheme();
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -28,6 +30,8 @@ export default function Categories() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState('');
+  
+  const styles = createStyles(theme);
 
   useEffect(() => {
     loadCategories();
@@ -128,14 +132,16 @@ export default function Categories() {
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => handleEditCategory(item)}
+          activeOpacity={0.98}
         >
-          <Ionicons name="pencil" size={16} color="#007AFF" />
+          <Ionicons name="pencil" size={16} color={theme.colors.accent} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => handleDeleteCategory(item)}
+          activeOpacity={0.98}
         >
-          <Ionicons name="trash" size={16} color="#FF3B30" />
+          <Ionicons name="trash" size={16} color={theme.colors.semantic.error} />
         </TouchableOpacity>
       </View>
     </View>
@@ -147,8 +153,9 @@ export default function Categories() {
         <TouchableOpacity 
           style={styles.backButton}
           onPress={() => router.back()}
+          activeOpacity={0.98}
         >
-          <Ionicons name="chevron-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.accent} />
         </TouchableOpacity>
         <Text style={styles.title}>Categories</Text>
         <View style={styles.placeholder} />
@@ -172,7 +179,11 @@ export default function Categories() {
             }}
           />
           {renderColorPicker(newCategoryColor, setNewCategoryColor)}
-          <TouchableOpacity style={styles.addButton} onPress={handleAddCategory}>
+          <TouchableOpacity 
+            style={styles.addButton} 
+            onPress={handleAddCategory}
+            activeOpacity={0.98}
+          >
             <Text style={styles.addButtonText}>Add Category</Text>
           </TouchableOpacity>
         </View>
@@ -212,12 +223,14 @@ export default function Categories() {
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setEditingCategory(null)}
+                activeOpacity={0.98}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
                 onPress={handleUpdateCategory}
+                activeOpacity={0.98}
               >
                 <Text style={styles.saveButtonText}>Save</Text>
               </TouchableOpacity>
@@ -229,79 +242,81 @@ export default function Categories() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: theme.colors.background,
   },
   header: {
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: "#FFFFFF",
+    paddingTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.container,
+    paddingBottom: theme.spacing.xl,
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E5EA",
+    borderBottomColor: theme.colors.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   backButton: {
-    padding: 4,
+    padding: theme.spacing.xs,
+    minHeight: theme.layout.touchTarget.minimum,
+    minWidth: theme.layout.touchTarget.minimum,
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1D1D1F",
+    ...createTextStyle(theme, 'h2'),
   },
   placeholder: {
-    width: 32, // Same width as back button for centering
+    width: theme.spacing.xxxl, // Same width as back button for centering
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: theme.spacing.container,
+    paddingTop: theme.spacing.xl,
   },
   sectionDescription: {
-    fontSize: 14,
-    color: "#8E8E93",
-    marginBottom: 20,
+    ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),
+    marginBottom: theme.spacing.xl,
   },
   addCategoryForm: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.layout.borderRadius.large,
+    padding: theme.spacing.xl,
+    marginBottom: theme.spacing.xl,
     borderWidth: 1,
-    borderColor: "#E5E5EA",
+    borderColor: theme.colors.border,
+    ...theme.shadows.subtle,
   },
   formLabel: {
-    fontSize: 18,
+    ...createTextStyle(theme, 'bodyLarge'),
     fontWeight: "600",
-    color: "#1D1D1F",
-    marginBottom: 12,
+    marginBottom: theme.spacing.md,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: "#E5E5EA",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#FFFFFF",
-    marginBottom: 16,
+    borderColor: theme.colors.border,
+    borderRadius: theme.layout.borderRadius.medium,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm + theme.spacing.xs, // 14pt vertical per style guide
+    ...createTextStyle(theme, 'bodyBase'),
+    backgroundColor: theme.colors.surface,
+    marginBottom: theme.spacing.lg,
+    minHeight: theme.layout.touchTarget.recommended, // 48pt per style guide
   },
   colorPicker: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.lg,
   },
   colorPickerLabel: {
-    fontSize: 16,
+    ...createTextStyle(theme, 'bodyBase'),
     fontWeight: "500",
-    color: "#1D1D1F",
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   colorOptions: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: theme.spacing.sm,
   },
   colorOption: {
     width: 40,
@@ -311,61 +326,67 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   selectedColor: {
-    borderColor: "#007AFF",
+    borderColor: theme.colors.accent,
     borderWidth: 3,
   },
   addButton: {
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    padding: 14,
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.layout.borderRadius.medium,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm + theme.spacing.xs, // 14pt per style guide
     alignItems: "center",
+    minHeight: theme.layout.touchTarget.recommended, // 48pt per style guide
+    justifyContent: "center",
   },
   addButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    ...createTextStyle(theme, 'button', theme.colors.surface),
     fontWeight: "600",
   },
   categoriesList: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.layout.borderRadius.large,
+    padding: theme.spacing.xl,
     borderWidth: 1,
-    borderColor: "#E5E5EA",
-    marginBottom: 20,
+    borderColor: theme.colors.border,
+    marginBottom: theme.spacing.xl,
+    ...theme.shadows.subtle,
   },
   emptyText: {
-    fontSize: 16,
-    color: "#8E8E93",
+    ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
     textAlign: "center",
     fontStyle: "italic",
-    paddingVertical: 20,
+    paddingVertical: theme.spacing.xl,
   },
   categoryItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#F2F2F7",
+    borderBottomColor: theme.colors.border,
+    minHeight: theme.layout.touchTarget.minimum + theme.spacing.lg, // List item per style guide
   },
   categoryColor: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 12,
+    width: theme.spacing.xxl,
+    height: theme.spacing.xxl,
+    borderRadius: theme.spacing.md,
+    marginRight: theme.spacing.md,
   },
   categoryName: {
     flex: 1,
-    fontSize: 16,
-    color: "#1D1D1F",
+    ...createTextStyle(theme, 'bodyBase'),
   },
   categoryActions: {
     flexDirection: "row",
-    gap: 8,
+    gap: theme.spacing.sm,
   },
   actionButton: {
-    padding: 8,
-    borderRadius: 6,
-    backgroundColor: "#F2F2F7",
+    padding: theme.spacing.sm,
+    borderRadius: theme.layout.borderRadius.small + 2,
+    backgroundColor: theme.colors.secondaryBackground,
+    minHeight: theme.spacing.xxxl,
+    minWidth: theme.spacing.xxxl,
+    justifyContent: "center",
+    alignItems: "center",
   },
   modal: {
     position: "absolute",
@@ -378,45 +399,44 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 20,
-    margin: 20,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.layout.borderRadius.large,
+    padding: theme.spacing.xl,
+    margin: theme.spacing.xl,
     width: "90%",
     maxWidth: 400,
+    ...theme.shadows.subtle,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1D1D1F",
-    marginBottom: 16,
+    ...createTextStyle(theme, 'h4'),
+    marginBottom: theme.spacing.lg,
     textAlign: "center",
   },
   modalActions: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 16,
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.lg,
   },
   modalButton: {
     flex: 1,
-    borderRadius: 8,
-    padding: 14,
+    borderRadius: theme.layout.borderRadius.medium,
+    paddingVertical: theme.spacing.sm + theme.spacing.xs, // 14pt per style guide
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: theme.layout.touchTarget.minimum,
   },
   cancelButton: {
-    backgroundColor: "#F2F2F7",
+    backgroundColor: theme.colors.secondaryBackground,
   },
   cancelButtonText: {
-    color: "#8E8E93",
-    fontSize: 16,
+    ...createTextStyle(theme, 'button', theme.colors.text.secondary),
     fontWeight: "600",
   },
   saveButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: theme.colors.accent,
   },
   saveButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    ...createTextStyle(theme, 'button', theme.colors.surface),
     fontWeight: "600",
   },
 });
