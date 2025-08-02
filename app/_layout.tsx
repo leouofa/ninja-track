@@ -1,50 +1,84 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import React from "react";
+import { ThemeProvider, useTheme } from "../utils/theme";
 
-export default function RootLayout() {
+function TabsLayout() {
+  const { theme } = useTheme();
+  
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#007AFF",
-        tabBarInactiveTintColor: "#8E8E93",
-        headerStyle: {
-          backgroundColor: "#F8F9FA",
-        },
-        headerTintColor: "#1D1D1F",
+        // Tab Bar Styling (per style guide)
+        tabBarActiveTintColor: theme.colors.accent,
+        tabBarInactiveTintColor: theme.colors.text.muted,
         tabBarStyle: {
-          backgroundColor: "#FFFFFF",
+          backgroundColor: theme.colors.surface,
           borderTopWidth: 1,
-          borderTopColor: "#E5E5EA",
+          borderTopColor: theme.colors.border,
+          height: 83, // 49pt + 34pt safe area as per style guide
+          paddingBottom: 8,
+          paddingTop: 8,
         },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '500', // Medium weight as per style guide
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginTop: 4,
+        },
+        // Header Styling (per style guide)  
+        headerStyle: {
+          backgroundColor: theme.colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colors.border,
+        },
+        headerTintColor: theme.colors.text.primary,
+        headerTitleStyle: {
+          fontSize: 18,
+          fontWeight: 'bold',
+          color: theme.colors.text.primary,
+        },
+        headerShadowVisible: false, // Clean look per monochrome design
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
+          headerTitle: "Ninja Track",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+            <Ionicons name="home" size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="reports"
         options={{
-          title: "Reports",
+          title: "Track", // Updated per style guide navigation pattern
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bar-chart" size={size} color={color} />
+            <Ionicons name="analytics" size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: "Profile", // Updated per style guide navigation pattern  
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" size={size} color={color} />
+            <Ionicons name="person" size={24} color={color} />
           ),
         }}
       />
     </Tabs>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <TabsLayout />
+    </ThemeProvider>
   );
 }

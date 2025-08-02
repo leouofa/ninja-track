@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { categoryUtils } from '../utils/categoryStorage';
 import { Category } from '../utils/types';
+import { useTheme, createTextStyle, createSpacing } from '../utils/theme';
 
 export default function Home() {
+  const { theme } = useTheme();
   const [categories, setCategories] = useState<Category[]>([]);
 
   const loadCategories = async () => {
@@ -20,8 +22,14 @@ export default function Home() {
     }, [])
   );
 
+  const styles = createStyles(theme);
+  const spacing = createSpacing(theme);
+
   const renderCategoryItem = ({ item }: { item: Category }) => (
-    <TouchableOpacity style={styles.categoryCard}>
+    <TouchableOpacity 
+      style={styles.categoryCard}
+      activeOpacity={0.98} // Per style guide - Scale down 98% on press
+    >
       <View style={[styles.categoryColor, { backgroundColor: item.color }]} />
       <View style={styles.categoryInfo}>
         <Text style={styles.categoryName}>{item.name}</Text>
@@ -29,16 +37,12 @@ export default function Home() {
           Created {item.createdAt.toLocaleDateString()}
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+      <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Welcome to Ninja Track</Text>
-      </View>
-      
       <View style={styles.content}>
         <Text style={styles.subtitle}>Your productivity tracking companion</Text>
         
@@ -50,10 +54,10 @@ export default function Home() {
           
           {categories.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="folder-outline" size={48} color="#C7C7CC" />
+              <Ionicons name="folder-outline" size={48} color={theme.colors.text.muted} />
               <Text style={styles.emptyTitle}>No categories yet</Text>
               <Text style={styles.emptyDescription}>
-                Go to Settings to create your first category and start tracking!
+                Go to Profile to create your first category and start tracking!
               </Text>
             </View>
           ) : (
@@ -71,35 +75,20 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
-  },
-  header: {
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5EA",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1D1D1F",
-    textAlign: "center",
+    backgroundColor: theme.colors.background,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: theme.spacing.container,
+    paddingTop: theme.spacing.section,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#8E8E93",
+    ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: theme.spacing.xxxl,
   },
   categoriesSection: {
     flex: 1,
@@ -107,75 +96,62 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: theme.spacing.lg,
   },
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#1D1D1F",
+    ...createTextStyle(theme, 'h3'),
   },
   categoryCount: {
-    fontSize: 18,
-    color: "#8E8E93",
-    marginLeft: 8,
+    ...createTextStyle(theme, 'bodyLarge', theme.colors.text.secondary),
+    marginLeft: theme.spacing.sm,
   },
   emptyState: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: theme.spacing.xxxl + theme.spacing.sm,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#8E8E93",
-    marginTop: 16,
-    marginBottom: 8,
+    ...createTextStyle(theme, 'h4', theme.colors.text.secondary),
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.sm,
   },
   emptyDescription: {
-    fontSize: 16,
-    color: "#C7C7CC",
+    ...createTextStyle(theme, 'bodyBase', theme.colors.text.muted),
     textAlign: "center",
     lineHeight: 22,
   },
   categoriesList: {
-    paddingBottom: 20,
+    paddingBottom: theme.spacing.xl,
   },
   categoryCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.layout.borderRadius.large,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E5EA",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadows.subtle,
+    // Interactive card per style guide
+    minHeight: theme.layout.touchTarget.minimum,
   },
   categoryColor: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 16,
+    width: theme.spacing.xxxl,
+    height: theme.spacing.xxxl,
+    borderRadius: theme.spacing.lg,
+    marginRight: theme.spacing.lg,
   },
   categoryInfo: {
     flex: 1,
   },
   categoryName: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1D1D1F",
-    marginBottom: 4,
+    ...createTextStyle(theme, 'bodyLarge'),
+    fontWeight: '600',
+    marginBottom: theme.spacing.xs,
   },
   categoryDate: {
-    fontSize: 14,
-    color: "#8E8E93",
+    ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),
   },
 });

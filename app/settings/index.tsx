@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme, createTextStyle } from '../../utils/theme';
 
 interface SettingsMenuItem {
   id: string;
@@ -30,7 +31,9 @@ const SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
 ];
 
 export default function Settings() {
+  const { theme, isDarkMode, toggleTheme } = useTheme();
   const router = useRouter();
+  const styles = createStyles(theme);
 
   const handleMenuItemPress = (route: string) => {
     router.push(route as any);
@@ -41,24 +44,44 @@ export default function Settings() {
       key={item.id}
       style={styles.menuItem}
       onPress={() => handleMenuItemPress(item.route)}
+      activeOpacity={0.98}
     >
       <View style={styles.menuItemIcon}>
-        <Ionicons name={item.icon} size={24} color="#007AFF" />
+        <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
       </View>
       <View style={styles.menuItemContent}>
         <Text style={styles.menuItemTitle}>{item.title}</Text>
         <Text style={styles.menuItemDescription}>{item.description}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+      <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
+    </TouchableOpacity>
+  );
+
+  const renderThemeToggle = () => (
+    <TouchableOpacity
+      style={styles.menuItem}
+      onPress={toggleTheme}
+      activeOpacity={0.98}
+    >
+      <View style={styles.menuItemIcon}>
+        <Ionicons 
+          name={isDarkMode ? "sunny" : "moon"} 
+          size={24} 
+          color={theme.colors.accent} 
+        />
+      </View>
+      <View style={styles.menuItemContent}>
+        <Text style={styles.menuItemTitle}>Theme</Text>
+        <Text style={styles.menuItemDescription}>
+          {isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
-      </View>
-      
       <ScrollView style={styles.content}>
         <Text style={styles.subtitle}>
           Configure your Ninja Track preferences and account settings.
@@ -66,6 +89,7 @@ export default function Settings() {
 
         <View style={styles.menuSection}>
           {SETTINGS_MENU_ITEMS.map(renderMenuItem)}
+          {renderThemeToggle()}
         </View>
 
         <View style={styles.footer}>
@@ -76,81 +100,65 @@ export default function Settings() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
-  },
-  header: {
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5EA",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1D1D1F",
-    textAlign: "center",
+    backgroundColor: theme.colors.background,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: theme.spacing.container,
+    paddingTop: theme.spacing.section,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#8E8E93",
+    ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: theme.spacing.xxxl,
     lineHeight: 22,
   },
   menuSection: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.layout.borderRadius.large,
     borderWidth: 1,
-    borderColor: "#E5E5EA",
+    borderColor: theme.colors.border,
     overflow: "hidden",
+    ...theme.shadows.subtle,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    padding: theme.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: "#F2F2F7",
-    backgroundColor: "#FFFFFF",
+    borderBottomColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
+    minHeight: theme.layout.touchTarget.minimum + theme.spacing.lg, // List item per style guide
   },
   menuItemIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#F2F2F7",
+    backgroundColor: theme.colors.secondaryBackground,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: theme.spacing.md,
   },
   menuItemContent: {
     flex: 1,
   },
   menuItemTitle: {
-    fontSize: 17,
+    ...createTextStyle(theme, 'bodyLarge'),
     fontWeight: "600",
-    color: "#1D1D1F",
-    marginBottom: 2,
+    marginBottom: theme.spacing.xs / 2,
   },
   menuItemDescription: {
-    fontSize: 14,
-    color: "#8E8E93",
+    ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),
   },
   footer: {
-    marginTop: 40,
-    paddingVertical: 20,
+    marginTop: theme.spacing.xxxl + theme.spacing.sm,
+    paddingVertical: theme.spacing.xl,
     alignItems: "center",
   },
   footerText: {
-    fontSize: 14,
-    color: "#C7C7CC",
+    ...createTextStyle(theme, 'bodySmall', theme.colors.text.muted),
   },
 });
