@@ -12,8 +12,8 @@ import {
     View,
 } from 'react-native';
 import { categoryUtils } from '../../utils/categoryStorage';
+import { createTextStyle, useTheme } from '../../utils/theme';
 import { Category } from '../../utils/types';
-import { useTheme, createTextStyle } from '../../utils/theme';
 
 const PREDEFINED_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57',
@@ -149,18 +149,6 @@ export default function Categories() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.98}
-        >
-          <Ionicons name="chevron-back" size={24} color={theme.colors.accent} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Categories</Text>
-        <View style={styles.placeholder} />
-      </View>
-      
       <ScrollView style={styles.content}>
         <Text style={styles.sectionDescription}>
           Manage your tracking categories. Names cannot contain spaces (replaced with dashes) or hashtags.
@@ -247,34 +235,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  header: {
-    paddingTop: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.container,
-    paddingBottom: theme.spacing.xl,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  backButton: {
-    padding: theme.spacing.xs,
-    minHeight: theme.layout.touchTarget.minimum,
-    minWidth: theme.layout.touchTarget.minimum,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    ...createTextStyle(theme, 'h2'),
-  },
-  placeholder: {
-    width: theme.spacing.xxxl, // Same width as back button for centering
-  },
+
   content: {
     flex: 1,
     paddingHorizontal: theme.spacing.container,
-    paddingTop: theme.spacing.xl,
+    paddingTop: theme.spacing.section,
   },
   sectionDescription: {
     ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),

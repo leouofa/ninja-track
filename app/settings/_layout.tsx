@@ -1,14 +1,43 @@
 import { Stack } from 'expo-router';
+import { useTheme } from '../../utils/theme';
 
 export default function SettingsLayout() {
+  const { theme } = useTheme();
+  
   return (
     <Stack
       screenOptions={{
-        headerShown: false, // We're handling headers in individual screens
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: theme.colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colors.border,
+        },
+        headerTintColor: theme.colors.accent,
+        headerTitleStyle: {
+          fontSize: 18,
+          fontWeight: 'bold',
+          color: theme.colors.text.primary,
+        },
+        headerBackTitleVisible: true,
+        headerBackTitle: 'Settings',
+        headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="index" />
-      <Stack.Screen name="categories" />
+      <Stack.Screen 
+        name="index" 
+        options={{
+          title: 'Settings',
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen 
+        name="categories" 
+        options={{
+          title: 'Categories',
+          headerBackTitle: 'Settings',
+        }}
+      />
     </Stack>
   );
 }

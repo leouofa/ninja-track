@@ -66,7 +66,7 @@ function TabsLayout() {
         name="settings"
         options={{
           title: "Settings",
-          headerTitle: "Settings",
+          headerShown: false, // Let the stack navigation handle headers
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings" size={24} color={color} />
           ),
