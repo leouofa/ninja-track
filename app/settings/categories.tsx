@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -10,8 +11,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { categoryUtils } from '../utils/categoryStorage';
-import { Category } from '../utils/types';
+import { categoryUtils } from '../../utils/categoryStorage';
+import { Category } from '../../utils/types';
 
 const PREDEFINED_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57',
@@ -19,7 +20,8 @@ const PREDEFINED_COLORS = [
   '#FC427B', '#0ABDE3', '#C44569', '#F8B500', '#6C5CE7'
 ];
 
-export default function Settings() {
+export default function Categories() {
+  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState(PREDEFINED_COLORS[0]);
@@ -142,48 +144,52 @@ export default function Settings() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Categories</Text>
+        <View style={styles.placeholder} />
       </View>
       
       <ScrollView style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Categories</Text>
-          <Text style={styles.sectionDescription}>
-            Manage your tracking categories. Names cannot contain spaces (replaced with dashes) or hashtags.
-          </Text>
+        <Text style={styles.sectionDescription}>
+          Manage your tracking categories. Names cannot contain spaces (replaced with dashes) or hashtags.
+        </Text>
 
-          {/* Add New Category */}
-          <View style={styles.addCategoryForm}>
-            <Text style={styles.formLabel}>Add New Category</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Enter category name"
-              value={newCategoryName}
-              onChangeText={(text) => {
-                const formatted = formatNameAsUserTypes(text);
-                setNewCategoryName(formatted);
-              }}
+        {/* Add New Category */}
+        <View style={styles.addCategoryForm}>
+          <Text style={styles.formLabel}>Add New Category</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Enter category name"
+            value={newCategoryName}
+            onChangeText={(text) => {
+              const formatted = formatNameAsUserTypes(text);
+              setNewCategoryName(formatted);
+            }}
+          />
+          {renderColorPicker(newCategoryColor, setNewCategoryColor)}
+          <TouchableOpacity style={styles.addButton} onPress={handleAddCategory}>
+            <Text style={styles.addButtonText}>Add Category</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Categories List */}
+        <View style={styles.categoriesList}>
+          <Text style={styles.formLabel}>Your Categories ({categories.length})</Text>
+          {categories.length === 0 ? (
+            <Text style={styles.emptyText}>No categories yet. Add your first one above!</Text>
+          ) : (
+            <FlatList
+              data={categories}
+              renderItem={renderCategoryItem}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
             />
-            {renderColorPicker(newCategoryColor, setNewCategoryColor)}
-            <TouchableOpacity style={styles.addButton} onPress={handleAddCategory}>
-              <Text style={styles.addButtonText}>Add Category</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Categories List */}
-          <View style={styles.categoriesList}>
-            <Text style={styles.formLabel}>Your Categories ({categories.length})</Text>
-            {categories.length === 0 ? (
-              <Text style={styles.emptyText}>No categories yet. Add your first one above!</Text>
-            ) : (
-              <FlatList
-                data={categories}
-                renderItem={renderCategoryItem}
-                keyExtractor={(item) => item.id}
-                scrollEnabled={false}
-              />
-            )}
-          </View>
+          )}
         </View>
       </ScrollView>
 
@@ -235,26 +241,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#E5E5EA",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  backButton: {
+    padding: 4,
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#1D1D1F",
-    textAlign: "center",
+  },
+  placeholder: {
+    width: 32, // Same width as back button for centering
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
-  },
-  section: {
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1D1D1F",
-    marginBottom: 8,
   },
   sectionDescription: {
     fontSize: 14,
@@ -326,6 +331,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: "#E5E5EA",
+    marginBottom: 20,
   },
   emptyText: {
     fontSize: 16,
