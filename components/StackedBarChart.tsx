@@ -16,7 +16,7 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   showValues = false
 }) => {
   const { theme } = useTheme();
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, height);
   
   // Handle empty data case
   if (!data || data.length === 0) {
@@ -35,7 +35,6 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   // Transform our data format to react-native-chart-kit format
   const transformedData = {
     labels: data.map(d => d.period),
-    legend: data.length > 0 ? data[0].categoryData.map(c => c.categoryName) : [],
     data: data.map(dataPoint => 
       dataPoint.categoryData.map(category => category.count)
     ),
@@ -49,7 +48,7 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
     backgroundGradientFrom: theme.colors.surface,
     backgroundGradientTo: theme.colors.surface,
     decimalPlaces: 0,
-    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity * 0.7})`,
+    color: (opacity = 1) => 'transparent', // Make all text transparent
     labelColor: (opacity = 1) => theme.colors.text.muted,
     style: {
       borderRadius: theme.layout.borderRadius.large,
@@ -60,30 +59,58 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
       strokeOpacity: 0.3,
     },
     propsForLabels: {
-      fontSize: 12,
+      fontSize: 0,
       fontFamily: 'System',
+      fill: 'transparent',
     },
     barPercentage: 0.7,
     fillShadowGradient: theme.colors.accent,
     fillShadowGradientOpacity: 1,
   };
 
+  const chartComponentWidth = Math.max(chartWidth, data.length * 80);
+
   return (
     <View style={styles.container}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <ChartKitStackedBarChart
-          style={styles.chart}
-          data={transformedData}
-          width={Math.max(chartWidth, data.length * 80)}
-          height={height - 40}
-          chartConfig={chartConfig}
-          withVerticalLabels={true}
-          withHorizontalLabels={true}
-          showLegend={true}
-        />
+        <View style={{ width: chartComponentWidth }}>
+          {/* Total Values Above Bars */}
+          <View style={styles.totalsContainer}>
+            {data.map((dataPoint, index) => {
+              const total = dataPoint.categoryData.reduce((sum, category) => sum + category.count, 0);
+              const barWidth = chartComponentWidth / data.length;
+              const leftPosition = (barWidth * index) + (barWidth / 2) - 10; // Center above bar
+              
+              return (
+                <Text 
+                  key={`total-${index}`} 
+                  style={[styles.totalText, { left: leftPosition }]}
+                >
+                  {total}
+                </Text>
+              );
+            })}
+          </View>
+          
+          <ChartKitStackedBarChart
+            style={styles.chart}
+            data={transformedData}
+            width={chartComponentWidth}
+            height={height - 40}
+            chartConfig={chartConfig}
+            withVerticalLabels={true}
+            withHorizontalLabels={false}
+            showLegend={false}
+            showBarTops={false}
+            withInnerLines={false}
+            showValuesOnTopOfBars={false}
+            hideLegend={true}
+            flatColor={true}
+          />
+        </View>
       </ScrollView>
       
-      {/* Custom Legend */}
+      {/* Custom Legend at Bottom */}
       {data.length > 0 && data[0].categoryData.length > 0 && (
         <View style={styles.legend}>
           {data[0].categoryData.map((category, index) => (
@@ -103,7 +130,7 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   );
 };
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: any, height: number) => StyleSheet.create({
   container: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.layout.borderRadius.large,
@@ -116,6 +143,21 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   chart: {
     borderRadius: theme.layout.borderRadius.medium,
+  },
+  totalsContainer: {
+    position: 'relative',
+    height: 30,
+    marginBottom: -10,
+  },
+  totalText: {
+    position: 'absolute',
+    top: 5,
+    ...createTextStyle(theme, 'bodySmall'),
+    fontWeight: '600',
+    fontSize: 12,
+    color: theme.colors.text.primary,
+    textAlign: 'center',
+    width: 20,
   },
   legend: {
     flexDirection: 'row',
