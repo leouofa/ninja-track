@@ -11,6 +11,7 @@ export default function Home() {
   const { theme } = useTheme();
   const [categories, setCategories] = useState<Category[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const loadData = async () => {
     const [loadedCategories, loadedTasks] = await Promise.all([
@@ -72,10 +73,59 @@ export default function Home() {
     );
   };
 
+  const generateCalendarDays = () => {
+    const days = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      days.push(date);
+    }
+    
+    return days;
+  };
+
+  const renderCalendarDay = (date: Date) => {
+    const isSelected = date.toDateString() === selectedDate.toDateString();
+    const isToday = date.toDateString() === new Date().toDateString();
+    
+    return (
+      <TouchableOpacity
+        key={date.toDateString()}
+        style={[
+          styles.calendarDay,
+          isSelected && styles.calendarDaySelected,
+          isToday && styles.calendarDayToday
+        ]}
+        onPress={() => setSelectedDate(date)}
+      >
+        <Text style={[
+          styles.calendarDayText,
+          isSelected && styles.calendarDayTextSelected
+        ]}>
+          {date.getDate()}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const CalendarComponent = () => {
+    const calendarDays = generateCalendarDays();
+    
+    return (
+      <View style={styles.calendarContainer}>
+        <View style={styles.calendarDays}>
+          {calendarDays.map(renderCalendarDay)}
+        </View>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.subtitle}>Your productivity tracking companion</Text>
+        <CalendarComponent />
         
         <View style={styles.categoriesSection}>
           <View style={styles.sectionHeader}>
@@ -116,11 +166,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingHorizontal: theme.spacing.container,
     paddingTop: theme.spacing.section,
   },
-  subtitle: {
-    ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
-    textAlign: "center",
-    marginBottom: theme.spacing.xxxl,
-  },
+
   categoriesSection: {
     flex: 1,
   },
@@ -219,5 +265,35 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontStyle: 'italic',
     marginLeft: theme.spacing.lg,
     paddingVertical: theme.spacing.xs,
+  },
+  calendarContainer: {
+    marginBottom: theme.spacing.xxxl,
+  },
+  calendarDays: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.sm,
+  },
+  calendarDay: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  calendarDaySelected: {
+    backgroundColor: theme.colors.primary,
+  },
+  calendarDayToday: {
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+  },
+  calendarDayText: {
+    ...createTextStyle(theme, 'bodyBase'),
+    fontWeight: '600',
+  },
+  calendarDayTextSelected: {
+    color: theme.colors.surface,
   },
 });
