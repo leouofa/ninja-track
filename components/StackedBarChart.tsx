@@ -18,6 +18,19 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   const { theme } = useTheme();
   const styles = createStyles(theme);
   
+
+  
+  // Handle empty data case
+  if (!data || data.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyChart}>
+          <Text style={styles.emptyText}>No data to display</Text>
+        </View>
+      </View>
+    );
+  }
+  
   const screenWidth = Dimensions.get('window').width;
   const chartPadding = theme.spacing.container;
   const chartWidth = Math.max(screenWidth - (chartPadding * 2), data.length * 60);
@@ -41,33 +54,31 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   const renderBar = (dataPoint: ChartDataPoint, index: number) => {
     const x = yAxisWidth + (index * (barWidth + 8));
     let stackY = chartHeight;
+    const bars: JSX.Element[] = [];
     
-    return (
-      <View key={`bar-${index}`}>
-        {dataPoint.categoryData.map((category, catIndex) => {
-          if (category.count === 0) return null;
-          
-          const barHeight = (category.count / maxTotal) * chartHeight;
-          const currentY = stackY - barHeight;
-          
-          const bar = (
-            <Rect
-              key={`${index}-${catIndex}`}
-              x={x}
-              y={currentY}
-              width={barWidth}
-              height={barHeight}
-              fill={category.categoryColor}
-              rx={catIndex === 0 ? 0 : 0} // Rounded corners only on top
-              ry={catIndex === 0 ? 0 : 0}
-            />
-          );
-          
-          stackY = currentY;
-          return bar;
-        })}
-      </View>
-    );
+    dataPoint.categoryData.forEach((category, catIndex) => {
+      if (category.count === 0) return;
+      
+      const barHeight = (category.count / maxTotal) * chartHeight;
+      const currentY = stackY - barHeight;
+      
+      bars.push(
+        <Rect
+          key={`${index}-${catIndex}`}
+          x={x}
+          y={currentY}
+          width={barWidth}
+          height={barHeight}
+          fill={category.categoryColor}
+          rx={2}
+          ry={2}
+        />
+      );
+      
+      stackY = currentY;
+    });
+    
+    return bars;
   };
 
   const renderYAxis = () => {
@@ -118,7 +129,7 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
             {renderYAxis()}
             
             {/* Bars */}
-            {data.map((dataPoint, index) => renderBar(dataPoint, index))}
+            {data.map((dataPoint, index) => renderBar(dataPoint, index)).flat()}
           </Svg>
           
           {/* X-axis labels */}
@@ -209,6 +220,15 @@ const createStyles = (theme: any) => StyleSheet.create({
   legendText: {
     ...createTextStyle(theme, 'bodySmall'),
     fontSize: 12,
+  },
+  emptyChart: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    ...createTextStyle(theme, 'bodyBase', theme.colors.text.muted),
+    fontStyle: 'italic',
   },
 });
 

@@ -95,6 +95,8 @@ export const reportsUtils = {
     grouping: TimeGrouping,
     periods: number = 30
   ): ChartDataPoint[] => {
+
+
     // Create a map of tasks by ID for quick lookup
     const taskMap = new Map(tasks.map(task => [task.id, task]));
     const categoryMap = new Map(categories.map(cat => [cat.id, cat]));
@@ -104,6 +106,7 @@ export const reportsUtils = {
 
     // Initialize all periods with zero counts
     const dateRange = reportsUtils.generateDateRange(grouping, periods);
+
     dateRange.forEach(date => {
       const periodKey = reportsUtils.getPeriodKey(date, grouping);
       if (!groupedData.has(periodKey)) {
@@ -151,6 +154,8 @@ export const reportsUtils = {
         total
       });
     });
+
+
 
     return chartData;
   }

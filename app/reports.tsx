@@ -22,6 +22,37 @@ export default function Reports() {
   const [selectedGrouping, setSelectedGrouping] = useState<TimeGrouping>('days');
   const [isLoading, setIsLoading] = useState(true);
 
+  // Test data for debugging chart rendering
+  const testChartData: ChartDataPoint[] = [
+    {
+      period: 'Jan 1',
+      date: new Date('2024-01-01'),
+      categoryData: [
+        { categoryId: '1', categoryName: 'Test Category 1', categoryColor: '#3B82F6', count: 3 },
+        { categoryId: '2', categoryName: 'Test Category 2', categoryColor: '#10B981', count: 2 }
+      ],
+      total: 5
+    },
+    {
+      period: 'Jan 2',
+      date: new Date('2024-01-02'),
+      categoryData: [
+        { categoryId: '1', categoryName: 'Test Category 1', categoryColor: '#3B82F6', count: 1 },
+        { categoryId: '2', categoryName: 'Test Category 2', categoryColor: '#10B981', count: 4 }
+      ],
+      total: 5
+    },
+    {
+      period: 'Jan 3',
+      date: new Date('2024-01-03'),
+      categoryData: [
+        { categoryId: '1', categoryName: 'Test Category 1', categoryColor: '#3B82F6', count: 2 },
+        { categoryId: '2', categoryName: 'Test Category 2', categoryColor: '#10B981', count: 1 }
+      ],
+      total: 3
+    }
+  ];
+
   const loadData = async () => {
     try {
       setIsLoading(true);
@@ -37,6 +68,8 @@ export default function Reports() {
       
       // Generate chart data
       const periods = selectedGrouping === 'days' ? 30 : selectedGrouping === 'weeks' ? 12 : 6;
+
+      
       const aggregatedData = reportsUtils.aggregateCompletionData(
         loadedCompletions,
         loadedTasks,
@@ -44,6 +77,8 @@ export default function Reports() {
         selectedGrouping,
         periods
       );
+      
+
       
       setChartData(aggregatedData);
     } catch (error) {
@@ -67,7 +102,6 @@ export default function Reports() {
         grouping,
         periods
       );
-      
       setChartData(aggregatedData);
     } catch (error) {
       console.error('Error updating chart data:', error);
@@ -153,7 +187,7 @@ export default function Reports() {
         </View>
 
         {/* Chart */}
-        <StackedBarChart data={chartData} height={320} />
+        <StackedBarChart data={testChartData} height={320} />
 
         {/* Category Breakdown */}
         {chartData.length > 0 && (
