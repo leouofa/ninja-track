@@ -11,3 +11,10 @@ export interface Task {
   categoryId: string;
   createdAt: Date;
 }
+
+export interface TaskCompletion {
+  id: string;
+  taskId: string;
+  date: string; // ISO date string (YYYY-MM-DD)
+  completedAt: Date;
+}

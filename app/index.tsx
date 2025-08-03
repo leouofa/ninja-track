@@ -1,25 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { categoryUtils } from '../utils/categoryStorage';
+import { taskCompletionUtils } from '../utils/taskCompletionStorage';
 import { taskUtils } from '../utils/taskStorage';
 import { createSpacing, createTextStyle, useTheme } from '../utils/theme';
-import { Category, Task } from '../utils/types';
+import { Category, Task, TaskCompletion } from '../utils/types';
 
 export default function Home() {
   const { theme } = useTheme();
   const [categories, setCategories] = useState<Category[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [taskCompletions, setTaskCompletions] = useState<TaskCompletion[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const loadData = async () => {
-    const [loadedCategories, loadedTasks] = await Promise.all([
+    const [loadedCategories, loadedTasks, loadedCompletions] = await Promise.all([
       categoryUtils.loadCategories(),
-      taskUtils.loadTasks()
+      taskUtils.loadTasks(),
+      taskCompletionUtils.loadTaskCompletions()
     ]);
     setCategories(loadedCategories);
     setTasks(loadedTasks);
+    setTaskCompletions(loadedCompletions);
   };
 
   // Reload data when the screen is focused (user comes back from settings)
@@ -36,39 +40,65 @@ export default function Home() {
     return tasks.filter(task => task.categoryId === categoryId);
   };
 
-  const renderTaskItem = (task: Task) => (
-    <View key={task.id} style={styles.taskItem}>
-      <View style={styles.taskDot} />
-      <Text style={styles.taskName}>{task.name}</Text>
-    </View>
-  );
+  const isTaskCompleted = (taskId: string): boolean => {
+    const dateString = selectedDate.toISOString().split('T')[0];
+    return taskCompletions.some(
+      completion => completion.taskId === taskId && completion.date === dateString
+    );
+  };
 
-  const renderCategoryItem = ({ item }: { item: Category }) => {
-    const categoryTasks = getTasksForCategory(item.id);
+  const handleTaskToggle = async (task: Task) => {
+    const newCompletionState = await taskCompletionUtils.toggleTaskCompletion(task.id, selectedDate);
+    // Reload completions to update the UI
+    const updatedCompletions = await taskCompletionUtils.loadTaskCompletions();
+    setTaskCompletions(updatedCompletions);
+  };
+
+  const renderTaskItem = (task: Task) => {
+    const isCompleted = isTaskCompleted(task.id);
+    
     return (
-      <View style={styles.categoryCard}>
+      <TouchableOpacity 
+        key={task.id} 
+        style={styles.taskItem}
+        onPress={() => handleTaskToggle(task)}
+        activeOpacity={0.7}
+      >
+        <View style={[
+          styles.taskCheckbox,
+          isCompleted && styles.taskCheckboxCompleted
+        ]}>
+          {isCompleted && (
+            <Ionicons name="checkmark" size={16} color={theme.colors.surface} />
+          )}
+        </View>
+        <Text style={[
+          styles.taskName,
+          isCompleted && styles.taskNameCompleted
+        ]}>
+          {task.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderCategorySection = (category: Category) => {
+    const categoryTasks = getTasksForCategory(category.id);
+    
+    if (categoryTasks.length === 0) {
+      return null;
+    }
+
+    return (
+      <View key={category.id} style={styles.categorySection}>
         <View style={styles.categoryHeader}>
-          <View style={[styles.categoryColor, { backgroundColor: item.color }]} />
-          <View style={styles.categoryInfo}>
-            <Text style={styles.categoryName}>{item.name}</Text>
-            <Text style={styles.categoryMeta}>
-              {categoryTasks.length} {categoryTasks.length === 1 ? 'task' : 'tasks'} • Created {item.createdAt.toLocaleDateString()}
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.categoryMenuButton}>
-            <Ionicons name="ellipsis-horizontal" size={20} color={theme.colors.text.muted} />
-          </TouchableOpacity>
+          <View style={[styles.categoryColor, { backgroundColor: category.color }]} />
+          <Text style={styles.categoryName}>{category.name}</Text>
         </View>
         
-        {categoryTasks.length > 0 && (
-          <View style={styles.tasksContainer}>
-            {categoryTasks.map(renderTaskItem)}
-          </View>
-        )}
-        
-        {categoryTasks.length === 0 && (
-          <Text style={styles.noTasksText}>No tasks yet</Text>
-        )}
+        <View style={styles.tasksContainer}>
+          {categoryTasks.map(renderTaskItem)}
+        </View>
       </View>
     );
   };
@@ -142,13 +172,9 @@ export default function Home() {
               </Text>
             </View>
           ) : (
-            <FlatList
-              data={categories}
-              renderItem={renderCategoryItem}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.categoriesList}
-            />
+            <View style={styles.categoriesList}>
+              {categories.map(renderCategorySection)}
+            </View>
           )}
         </View>
       </View>
@@ -201,70 +227,62 @@ const createStyles = (theme: any) => StyleSheet.create({
   categoriesList: {
     paddingBottom: theme.spacing.xl,
   },
-  categoryCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.layout.borderRadius.large,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    ...theme.shadows.subtle,
-    // Interactive card per style guide
-    minHeight: theme.layout.touchTarget.minimum,
+  categorySection: {
+    marginBottom: theme.spacing.xl,
   },
   categoryHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: theme.spacing.md,
-  },
-  categoryMenuButton: {
-    padding: theme.spacing.xs,
-    borderRadius: theme.layout.borderRadius.small,
+    marginBottom: theme.spacing.lg,
   },
   categoryColor: {
-    width: theme.spacing.xxxl,
-    height: theme.spacing.xxxl,
-    borderRadius: theme.spacing.lg,
-    marginRight: theme.spacing.lg,
-  },
-  categoryInfo: {
-    flex: 1,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: theme.spacing.md,
   },
   categoryName: {
-    ...createTextStyle(theme, 'bodyLarge'),
+    ...createTextStyle(theme, 'h4'),
     fontWeight: '600',
-    marginBottom: theme.spacing.xs,
-  },
-  categoryMeta: {
-    ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),
   },
   tasksContainer: {
-    paddingLeft: theme.spacing.md,
-    borderLeftWidth: 2,
-    borderLeftColor: theme.colors.border,
-    marginLeft: theme.spacing.lg,
+    paddingLeft: theme.spacing.lg,
   },
   taskItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: theme.spacing.xs,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.layout.borderRadius.medium,
+    marginBottom: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    minHeight: theme.layout.touchTarget.minimum,
   },
-  taskDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: theme.colors.text.muted,
-    marginRight: theme.spacing.sm,
+  taskCheckbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    marginRight: theme.spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+  },
+  taskCheckboxCompleted: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   taskName: {
-    ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
+    ...createTextStyle(theme, 'bodyLarge'),
     flex: 1,
+    fontWeight: '500',
   },
-  noTasksText: {
-    ...createTextStyle(theme, 'bodySmall', theme.colors.text.muted),
-    fontStyle: 'italic',
-    marginLeft: theme.spacing.lg,
-    paddingVertical: theme.spacing.xs,
+  taskNameCompleted: {
+    textDecorationLine: 'line-through',
+    color: theme.colors.text.muted,
   },
   calendarContainer: {
     marginBottom: theme.spacing.xxxl,

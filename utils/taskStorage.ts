@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { taskCompletionUtils } from './taskCompletionStorage';
 import { Task } from './types';
 
 const TASKS_STORAGE_KEY = '@ninja_track_tasks';
@@ -132,6 +133,8 @@ export const taskUtils = {
       return false; // Task not found
     }
 
+    // Clean up task completions
+    await taskCompletionUtils.deleteCompletionsForTask(id);
     await taskUtils.saveTasks(filteredTasks);
     return true;
   },
@@ -139,6 +142,13 @@ export const taskUtils = {
   // Delete all tasks for a category (when category is deleted)
   deleteTasksByCategory: async (categoryId: string): Promise<void> => {
     const tasks = await taskUtils.loadTasks();
+    const tasksToDelete = tasks.filter(task => task.categoryId === categoryId);
+    
+    // Clean up task completions for all tasks in this category
+    for (const task of tasksToDelete) {
+      await taskCompletionUtils.deleteCompletionsForTask(task.id);
+    }
+    
     const filteredTasks = tasks.filter(task => task.categoryId !== categoryId);
     await taskUtils.saveTasks(filteredTasks);
   }
