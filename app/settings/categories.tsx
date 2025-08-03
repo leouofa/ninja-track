@@ -165,6 +165,8 @@ export default function Categories() {
               const formatted = formatNameAsUserTypes(text);
               setNewCategoryName(formatted);
             }}
+            onSubmitEditing={handleAddCategory}
+            returnKeyType="done"
           />
           {renderColorPicker(newCategoryColor, setNewCategoryColor)}
           <TouchableOpacity 
@@ -205,6 +207,8 @@ export default function Categories() {
                 const formatted = formatNameAsUserTypes(text);
                 setEditName(formatted);
               }}
+              onSubmitEditing={handleUpdateCategory}
+              returnKeyType="done"
             />
             {renderColorPicker(editColor, setEditColor)}
             <View style={styles.modalActions}>
