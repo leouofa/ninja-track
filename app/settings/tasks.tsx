@@ -253,6 +253,8 @@ export default function Tasks() {
               const formatted = formatNameAsUserTypes(text);
               setNewTaskName(formatted);
             }}
+            onSubmitEditing={handleAddTask}
+            returnKeyType="done"
           />
           {renderCategorySelector(newTaskCategoryId, () => setShowCategoryPicker(true))}
           <TouchableOpacity 
@@ -310,6 +312,8 @@ export default function Tasks() {
                 const formatted = formatNameAsUserTypes(text);
                 setEditName(formatted);
               }}
+              onSubmitEditing={handleUpdateTask}
+              returnKeyType="done"
             />
             {renderCategorySelector(editCategoryId, () => setShowEditCategoryPicker(true))}
             <View style={styles.modalActions}>
@@ -484,8 +488,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: theme.spacing.sm,
     borderRadius: theme.layout.borderRadius.small + 2,
     backgroundColor: theme.colors.secondaryBackground,
-    minHeight: theme.spacing.xxxl,
-    minWidth: theme.spacing.xxxl,
+    minHeight: theme.layout.touchTarget.recommended,
+    minWidth: theme.layout.touchTarget.recommended,
     justifyContent: "center",
     alignItems: "center",
   },

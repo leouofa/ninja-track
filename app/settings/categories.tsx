@@ -165,6 +165,8 @@ export default function Categories() {
               const formatted = formatNameAsUserTypes(text);
               setNewCategoryName(formatted);
             }}
+            onSubmitEditing={handleAddCategory}
+            returnKeyType="done"
           />
           {renderColorPicker(newCategoryColor, setNewCategoryColor)}
           <TouchableOpacity 
@@ -205,6 +207,8 @@ export default function Categories() {
                 const formatted = formatNameAsUserTypes(text);
                 setEditName(formatted);
               }}
+              onSubmitEditing={handleUpdateCategory}
+              returnKeyType="done"
             />
             {renderColorPicker(editColor, setEditColor)}
             <View style={styles.modalActions}>
@@ -348,8 +352,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: theme.spacing.sm,
     borderRadius: theme.layout.borderRadius.small + 2,
     backgroundColor: theme.colors.secondaryBackground,
-    minHeight: theme.spacing.xxxl,
-    minWidth: theme.spacing.xxxl,
+    minHeight: theme.layout.touchTarget.recommended,
+    minWidth: theme.layout.touchTarget.recommended,
     justifyContent: "center",
     alignItems: "center",
   },
