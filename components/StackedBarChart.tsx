@@ -62,6 +62,9 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
       fontSize: 0,
       fontFamily: 'System',
       fill: 'transparent',
+      stroke: 'transparent',
+      fillOpacity: 0,
+      strokeOpacity: 0,
     },
     barPercentage: 0.7,
     fillShadowGradient: theme.colors.accent,
@@ -101,11 +104,6 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
             withVerticalLabels={true}
             withHorizontalLabels={false}
             showLegend={false}
-            showBarTops={false}
-            withInnerLines={false}
-            showValuesOnTopOfBars={false}
-            hideLegend={true}
-            flatColor={true}
           />
         </View>
       </ScrollView>
