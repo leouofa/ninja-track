@@ -3,43 +3,74 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { categoryUtils } from '../utils/categoryStorage';
-import { Category } from '../utils/types';
-import { useTheme, createTextStyle, createSpacing } from '../utils/theme';
+import { taskUtils } from '../utils/taskStorage';
+import { createSpacing, createTextStyle, useTheme } from '../utils/theme';
+import { Category, Task } from '../utils/types';
 
 export default function Home() {
   const { theme } = useTheme();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-  const loadCategories = async () => {
-    const loadedCategories = await categoryUtils.loadCategories();
+  const loadData = async () => {
+    const [loadedCategories, loadedTasks] = await Promise.all([
+      categoryUtils.loadCategories(),
+      taskUtils.loadTasks()
+    ]);
     setCategories(loadedCategories);
+    setTasks(loadedTasks);
   };
 
-  // Reload categories when the screen is focused (user comes back from settings)
+  // Reload data when the screen is focused (user comes back from settings)
   useFocusEffect(
     React.useCallback(() => {
-      loadCategories();
+      loadData();
     }, [])
   );
 
   const styles = createStyles(theme);
   const spacing = createSpacing(theme);
 
-  const renderCategoryItem = ({ item }: { item: Category }) => (
-    <TouchableOpacity 
-      style={styles.categoryCard}
-      activeOpacity={0.98} // Per style guide - Scale down 98% on press
-    >
-      <View style={[styles.categoryColor, { backgroundColor: item.color }]} />
-      <View style={styles.categoryInfo}>
-        <Text style={styles.categoryName}>{item.name}</Text>
-        <Text style={styles.categoryDate}>
-          Created {item.createdAt.toLocaleDateString()}
-        </Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
-    </TouchableOpacity>
+  const getTasksForCategory = (categoryId: string): Task[] => {
+    return tasks.filter(task => task.categoryId === categoryId);
+  };
+
+  const renderTaskItem = (task: Task) => (
+    <View key={task.id} style={styles.taskItem}>
+      <View style={styles.taskDot} />
+      <Text style={styles.taskName}>{task.name}</Text>
+    </View>
   );
+
+  const renderCategoryItem = ({ item }: { item: Category }) => {
+    const categoryTasks = getTasksForCategory(item.id);
+    return (
+      <View style={styles.categoryCard}>
+        <View style={styles.categoryHeader}>
+          <View style={[styles.categoryColor, { backgroundColor: item.color }]} />
+          <View style={styles.categoryInfo}>
+            <Text style={styles.categoryName}>{item.name}</Text>
+            <Text style={styles.categoryMeta}>
+              {categoryTasks.length} {categoryTasks.length === 1 ? 'task' : 'tasks'} • Created {item.createdAt.toLocaleDateString()}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.categoryMenuButton}>
+            <Ionicons name="ellipsis-horizontal" size={20} color={theme.colors.text.muted} />
+          </TouchableOpacity>
+        </View>
+        
+        {categoryTasks.length > 0 && (
+          <View style={styles.tasksContainer}>
+            {categoryTasks.map(renderTaskItem)}
+          </View>
+        )}
+        
+        {categoryTasks.length === 0 && (
+          <Text style={styles.noTasksText}>No tasks yet</Text>
+        )}
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -129,13 +160,20 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: theme.layout.borderRadius.large,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
-    flexDirection: "row",
-    alignItems: "center",
     borderWidth: 1,
     borderColor: theme.colors.border,
     ...theme.shadows.subtle,
     // Interactive card per style guide
     minHeight: theme.layout.touchTarget.minimum,
+  },
+  categoryHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: theme.spacing.md,
+  },
+  categoryMenuButton: {
+    padding: theme.spacing.xs,
+    borderRadius: theme.layout.borderRadius.small,
   },
   categoryColor: {
     width: theme.spacing.xxxl,
@@ -151,7 +189,35 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: '600',
     marginBottom: theme.spacing.xs,
   },
-  categoryDate: {
+  categoryMeta: {
     ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),
+  },
+  tasksContainer: {
+    paddingLeft: theme.spacing.md,
+    borderLeftWidth: 2,
+    borderLeftColor: theme.colors.border,
+    marginLeft: theme.spacing.lg,
+  },
+  taskItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: theme.spacing.xs,
+  },
+  taskDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: theme.colors.text.muted,
+    marginRight: theme.spacing.sm,
+  },
+  taskName: {
+    ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
+    flex: 1,
+  },
+  noTasksText: {
+    ...createTextStyle(theme, 'bodySmall', theme.colors.text.muted),
+    fontStyle: 'italic',
+    marginLeft: theme.spacing.lg,
+    paddingVertical: theme.spacing.xs,
   },
 });
