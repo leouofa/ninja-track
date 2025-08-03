@@ -38,6 +38,13 @@ export default function SettingsLayout() {
           headerBackTitle: 'Settings',
         }}
       />
+      <Stack.Screen 
+        name="tasks" 
+        options={{
+          title: 'Tasks',
+          headerBackTitle: 'Settings',
+        }}
+      />
     </Stack>
   );
 }
