@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme, createTextStyle } from '../../utils/theme';
+import { createTextStyle, useTheme } from '../../utils/theme';
 
 interface SettingsMenuItem {
   id: string;
@@ -19,6 +19,13 @@ const SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
     description: 'Manage your tracking categories',
     icon: 'folder-outline',
     route: '/settings/categories',
+  },
+  {
+    id: 'tasks',
+    title: 'Tasks',
+    description: 'Manage your tasks within categories',
+    icon: 'list-outline',
+    route: '/settings/tasks',
   },
   // Add more menu items here as you expand the app
   // {
