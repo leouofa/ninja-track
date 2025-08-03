@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { createTextStyle, useTheme } from '../../utils/theme';
 
 interface SettingsMenuItem {
@@ -47,29 +47,25 @@ export default function Settings() {
   };
 
   const renderMenuItem = (item: SettingsMenuItem) => (
-    <TouchableOpacity
-      key={item.id}
-      style={styles.menuItem}
-      onPress={() => handleMenuItemPress(item.route)}
-      activeOpacity={0.98}
-    >
-      <View style={styles.menuItemIcon}>
-        <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
-      </View>
-      <View style={styles.menuItemContent}>
-        <Text style={styles.menuItemTitle}>{item.title}</Text>
-        <Text style={styles.menuItemDescription}>{item.description}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
-    </TouchableOpacity>
+    <Link key={item.id} href={item.route as any} asChild>
+      <TouchableOpacity
+        style={styles.menuItem}
+        activeOpacity={0.98}
+      >
+        <View style={styles.menuItemIcon}>
+          <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
+        </View>
+        <View style={styles.menuItemContent}>
+          <Text style={styles.menuItemTitle}>{item.title}</Text>
+          <Text style={styles.menuItemDescription}>{item.description}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
+      </TouchableOpacity>
+    </Link>
   );
 
   const renderThemeToggle = () => (
-    <TouchableOpacity
-      style={styles.menuItem}
-      onPress={toggleTheme}
-      activeOpacity={0.98}
-    >
+    <View style={styles.menuItem}>
       <View style={styles.menuItemIcon}>
         <Ionicons 
           name={isDarkMode ? "sunny" : "moon"} 
@@ -80,11 +76,20 @@ export default function Settings() {
       <View style={styles.menuItemContent}>
         <Text style={styles.menuItemTitle}>Theme</Text>
         <Text style={styles.menuItemDescription}>
-          {isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+          {isDarkMode ? "Dark mode" : "Light mode"}
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
-    </TouchableOpacity>
+      <Switch
+        value={isDarkMode}
+        onValueChange={toggleTheme}
+        trackColor={{ 
+          false: theme.colors.border, 
+          true: theme.colors.accent 
+        }}
+        thumbColor={isDarkMode ? theme.colors.surface : theme.colors.surface}
+        ios_backgroundColor={theme.colors.border}
+      />
+    </View>
   );
 
   return (
