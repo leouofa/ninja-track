@@ -1,15 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { categoryUtils } from '../../utils/categoryStorage';
 import { taskUtils } from '../../utils/taskStorage';
@@ -18,7 +18,6 @@ import { Category, Task } from '../../utils/types';
 
 export default function Tasks() {
   const { theme } = useTheme();
-  const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [newTaskName, setNewTaskName] = useState('');
@@ -222,13 +221,14 @@ export default function Tasks() {
             <Text style={styles.emptyDescription}>
               You need to create categories first before adding tasks.
             </Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => router.push('/settings/categories')}
-              activeOpacity={0.98}
-            >
-              <Text style={styles.addButtonText}>Manage Categories</Text>
-            </TouchableOpacity>
+            <Link href="/settings/categories" asChild>
+              <TouchableOpacity
+                style={styles.addButton}
+                activeOpacity={0.98}
+              >
+                <Text style={styles.addButtonText}>Manage Categories</Text>
+              </TouchableOpacity>
+            </Link>
           </View>
         </View>
       </View>
