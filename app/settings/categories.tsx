@@ -1,15 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { categoryUtils } from '../../utils/categoryStorage';
 import { createTextStyle, useTheme } from '../../utils/theme';
@@ -23,7 +22,6 @@ const PREDEFINED_COLORS = [
 
 export default function Categories() {
   const { theme } = useTheme();
-  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState(PREDEFINED_COLORS[0]);

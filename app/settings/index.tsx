@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { createTextStyle, useTheme } from '../../utils/theme';
@@ -27,24 +27,11 @@ const SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
     icon: 'list-outline',
     route: '/settings/tasks',
   },
-  // Add more menu items here as you expand the app
-  // {
-  //   id: 'notifications',
-  //   title: 'Notifications',
-  //   description: 'Configure notification preferences',
-  //   icon: 'notifications-outline',
-  //   route: '/settings/notifications',
-  // },
 ];
 
 export default function Settings() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
-  const router = useRouter();
   const styles = createStyles(theme);
-
-  const handleMenuItemPress = (route: string) => {
-    router.push(route as any);
-  };
 
   const renderMenuItem = (item: SettingsMenuItem) => (
     <Link key={item.id} href={item.route as any} asChild>
