@@ -121,12 +121,15 @@ export default function Reports() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Task Completion Reports</Text>
           <Text style={styles.subtitle}>
-            Track your productivity across categories over time
+            Visualize your momentum across categories over time.
           </Text>
         </View>
 
@@ -200,7 +203,10 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingBottom: theme.spacing.xl,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 30, // Extra padding for tab bar
   },
   loadingContainer: {
     flex: 1,
@@ -240,6 +246,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   subtitle: {
     ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
     lineHeight: 20,
+    textAlign: 'center',
   },
   statsContainer: {
     flexDirection: 'row',

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { categoryUtils } from '../utils/categoryStorage';
 import { taskCompletionUtils } from '../utils/taskCompletionStorage';
 import { taskUtils } from '../utils/taskStorage';
@@ -116,27 +116,36 @@ export default function Home() {
     return days;
   };
 
+  const getDayLabel = (date: Date) => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return days[date.getDay()];
+  };
+
   const renderCalendarDay = (date: Date) => {
     const isSelected = date.toDateString() === selectedDate.toDateString();
     const isToday = date.toDateString() === new Date().toDateString();
     
     return (
-      <TouchableOpacity
-        key={date.toDateString()}
-        style={[
-          styles.calendarDay,
-          isSelected && styles.calendarDaySelected,
-          isToday && styles.calendarDayToday
-        ]}
-        onPress={() => setSelectedDate(date)}
-      >
-        <Text style={[
-          styles.calendarDayText,
-          isSelected && styles.calendarDayTextSelected
-        ]}>
-          {date.getDate()}
+      <View key={date.toDateString()} style={styles.calendarDayContainer}>
+        <TouchableOpacity
+          style={[
+            styles.calendarDay,
+            isSelected && styles.calendarDaySelected,
+            isToday && styles.calendarDayToday
+          ]}
+          onPress={() => setSelectedDate(date)}
+        >
+          <Text style={[
+            styles.calendarDayText,
+            isSelected && styles.calendarDayTextSelected
+          ]}>
+            {date.getDate()}
+          </Text>
+        </TouchableOpacity>
+        <Text style={styles.calendarDayLabel}>
+          {getDayLabel(date)}
         </Text>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -155,28 +164,45 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.subtitle}>
+            Last 7 days of activity.
+          </Text>
+        </View>
+        
         <CalendarComponent />
         
-        <View style={styles.categoriesSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Your Categories</Text>
-            <Text style={styles.categoryCount}>({categories.length})</Text>
+        <ScrollView 
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.categoriesSection}>
+            <View style={styles.sectionHeaderContainer}>
+              <View style={styles.horizontalLine} />
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Tracked Categories</Text>
+                <Text style={styles.categoryCount}>({categories.length})</Text>
+              </View>
+              <View style={styles.horizontalLine} />
+            </View>
+            
+            {categories.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="folder-outline" size={48} color={theme.colors.text.muted} />
+                <Text style={styles.emptyTitle}>No categories yet</Text>
+                <Text style={styles.emptyDescription}>
+                  Go to Settings to create your first category and start tracking!
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.categoriesList}>
+                {categories.map(renderCategorySection)}
+              </View>
+            )}
           </View>
-          
-          {categories.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="folder-outline" size={48} color={theme.colors.text.muted} />
-              <Text style={styles.emptyTitle}>No categories yet</Text>
-              <Text style={styles.emptyDescription}>
-                Go to Profile to create your first category and start tracking!
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.categoriesList}>
-              {categories.map(renderCategorySection)}
-            </View>
-          )}
-        </View>
+        </ScrollView>
       </View>
     </View>
   );
@@ -192,14 +218,38 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingHorizontal: theme.spacing.container,
     paddingTop: theme.spacing.section,
   },
-
-  categoriesSection: {
+  header: {
+    paddingHorizontal: theme.spacing.container,
+    paddingBottom: theme.spacing.md,
+  },
+  subtitle: {
+    ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  scrollContainer: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: theme.spacing.xl,
+  },
+  categoriesSection: {
+    minHeight: '100%',
+  },
+  sectionHeaderContainer: {
+    marginVertical: theme.spacing.lg,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+  },
+  horizontalLine: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+    opacity: 0.3,
+    marginHorizontal: theme.spacing.container,
   },
   sectionTitle: {
     ...createTextStyle(theme, 'h3'),
@@ -213,6 +263,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: theme.spacing.xxxl + theme.spacing.sm,
+    minHeight: 300,
   },
   emptyTitle: {
     ...createTextStyle(theme, 'h4', theme.colors.text.secondary),
@@ -225,7 +276,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     lineHeight: 22,
   },
   categoriesList: {
-    paddingBottom: theme.spacing.xl,
   },
   categorySection: {
     marginBottom: theme.spacing.xl,
@@ -313,5 +363,14 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   calendarDayTextSelected: {
     color: theme.colors.surface,
+  },
+  calendarDayContainer: {
+    alignItems: 'center',
+  },
+  calendarDayLabel: {
+    ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: theme.spacing.xs,
   },
 });

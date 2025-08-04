@@ -13,7 +13,7 @@ export default function SettingsLayout() {
           borderBottomWidth: 1,
           borderBottomColor: theme.colors.border,
         },
-        headerTintColor: theme.colors.accent,
+        headerTintColor: theme.colors.text.primary,
         headerTitleStyle: {
           fontSize: 18,
           fontWeight: 'bold',

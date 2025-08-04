@@ -9,8 +9,8 @@ function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        // Tab Bar Styling (per style guide)
-        tabBarActiveTintColor: theme.colors.accent,
+        // Tab Bar Styling (per style guide) - Monochrome design
+        tabBarActiveTintColor: theme.colors.text.primary,
         tabBarInactiveTintColor: theme.colors.text.muted,
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
@@ -47,7 +47,7 @@ function TabsLayout() {
         name="index"
         options={{
           title: "Home",
-          headerTitle: "Ninja Track",
+          headerTitle: "Progress Tracking",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={24} color={color} />
           ),
@@ -56,9 +56,9 @@ function TabsLayout() {
       <Tabs.Screen
         name="reports"
         options={{
-          title: "Track", // Updated per style guide navigation pattern
+          title: "Reports",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="analytics" size={24} color={color} />
+            <Ionicons name="document-text" size={24} color={color} />
           ),
         }}
       />

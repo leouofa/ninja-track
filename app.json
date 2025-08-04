@@ -9,6 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "bundleIdentifier": "com.medovyy.ninjatrack",
       "supportsTablet": true
     },
     "android": {
