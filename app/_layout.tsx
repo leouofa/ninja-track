@@ -56,9 +56,9 @@ function TabsLayout() {
       <Tabs.Screen
         name="reports"
         options={{
-          title: "Track", // Updated per style guide navigation pattern
+          title: "Reports",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="analytics" size={24} color={color} />
+            <Ionicons name="document-text" size={24} color={color} />
           ),
         }}
       />
