@@ -167,7 +167,7 @@ export default function Home() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.subtitle}>
-            Last 7 days of progress.
+            Last 7 days of activity.
           </Text>
         </View>
         
@@ -179,9 +179,13 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.categoriesSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Tracked Categories</Text>
-              <Text style={styles.categoryCount}>({categories.length})</Text>
+            <View style={styles.sectionHeaderContainer}>
+              <View style={styles.horizontalLine} />
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Tracked Categories</Text>
+                <Text style={styles.categoryCount}>({categories.length})</Text>
+              </View>
+              <View style={styles.horizontalLine} />
             </View>
             
             {categories.length === 0 ? (
@@ -233,10 +237,19 @@ const createStyles = (theme: any) => StyleSheet.create({
   categoriesSection: {
     minHeight: '100%',
   },
+  sectionHeaderContainer: {
+    marginVertical: theme.spacing.lg,
+  },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+  },
+  horizontalLine: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+    opacity: 0.3,
+    marginHorizontal: theme.spacing.container,
   },
   sectionTitle: {
     ...createTextStyle(theme, 'h3'),
