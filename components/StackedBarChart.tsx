@@ -35,6 +35,7 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   // Transform our data format to react-native-chart-kit format
   const transformedData = {
     labels: data.map(d => d.period),
+    legend: data.length > 0 ? data[0].categoryData.map(c => c.categoryName) : [],
     data: data.map(dataPoint => 
       dataPoint.categoryData.map(category => category.count)
     ),
@@ -48,7 +49,7 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
     backgroundGradientFrom: theme.colors.surface,
     backgroundGradientTo: theme.colors.surface,
     decimalPlaces: 0,
-    color: (opacity = 1) => 'transparent', // Make all text transparent
+    color: (opacity = 1) => theme.colors.text.muted,
     labelColor: (opacity = 1) => theme.colors.text.muted,
     style: {
       borderRadius: theme.layout.borderRadius.large,
@@ -59,16 +60,17 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
       strokeOpacity: 0.3,
     },
     propsForLabels: {
-      fontSize: 0,
+      fontSize: 12,
       fontFamily: 'System',
-      fill: 'transparent',
-      stroke: 'transparent',
-      fillOpacity: 0,
-      strokeOpacity: 0,
+      fill: theme.colors.text.muted,
     },
     barPercentage: 0.7,
     fillShadowGradient: theme.colors.accent,
     fillShadowGradientOpacity: 1,
+    formatYLabel: (yValue: string) => {
+      const num = parseFloat(yValue);
+      return Math.round(num).toString();
+    },
   };
 
   const chartComponentWidth = Math.max(chartWidth, data.length * 80);
@@ -77,33 +79,15 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
     <View style={styles.container}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={{ width: chartComponentWidth }}>
-          {/* Total Values Above Bars */}
-          <View style={styles.totalsContainer}>
-            {data.map((dataPoint, index) => {
-              const total = dataPoint.categoryData.reduce((sum, category) => sum + category.count, 0);
-              const barWidth = chartComponentWidth / data.length;
-              const leftPosition = (barWidth * index) + (barWidth / 2) - 10; // Center above bar
-              
-              return (
-                <Text 
-                  key={`total-${index}`} 
-                  style={[styles.totalText, { left: leftPosition }]}
-                >
-                  {total}
-                </Text>
-              );
-            })}
-          </View>
-          
           <ChartKitStackedBarChart
             style={styles.chart}
             data={transformedData}
             width={chartComponentWidth}
-            height={height - 40}
+            height={height}
             chartConfig={chartConfig}
             withVerticalLabels={true}
-            withHorizontalLabels={false}
-            showLegend={false}
+            withHorizontalLabels={true}
+            hideLegend={true}
           />
         </View>
       </ScrollView>
@@ -141,21 +125,6 @@ const createStyles = (theme: any, height: number) => StyleSheet.create({
   },
   chart: {
     borderRadius: theme.layout.borderRadius.medium,
-  },
-  totalsContainer: {
-    position: 'relative',
-    height: 30,
-    marginBottom: -10,
-  },
-  totalText: {
-    position: 'absolute',
-    top: 5,
-    ...createTextStyle(theme, 'bodySmall'),
-    fontWeight: '600',
-    fontSize: 12,
-    color: theme.colors.text.primary,
-    textAlign: 'center',
-    width: 20,
   },
   legend: {
     flexDirection: 'row',
