@@ -45,6 +45,13 @@ export default function SettingsLayout() {
           headerBackTitle: 'Settings',
         }}
       />
+      <Stack.Screen 
+        name="reminders" 
+        options={{
+          title: 'Reminders',
+          headerBackTitle: 'Settings',
+        }}
+      />
     </Stack>
   );
 }

@@ -27,6 +27,13 @@ const SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
     icon: 'list-outline',
     route: '/settings/tasks',
   },
+  {
+    id: 'reminders',
+    title: 'Reminders',
+    description: 'Set up weekly task tracking reminders',
+    icon: 'notifications-outline',
+    route: '/settings/reminders',
+  },
 ];
 
 export default function Settings() {
