@@ -2,18 +2,28 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { ReminderSettings } from './types';
 
-// Configure notification handler
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// Check if we're on a platform that supports notifications
+const isNotificationSupported = Platform.OS === 'ios' || Platform.OS === 'android';
+
+// Configure notification handler (only on supported platforms)
+if (isNotificationSupported) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 export const notificationUtils = {
   // Request notification permissions
   requestPermissions: async (): Promise<boolean> => {
+    if (!isNotificationSupported) {
+      console.log('Notifications not supported on this platform');
+      return false;
+    }
+
     try {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
@@ -47,6 +57,10 @@ export const notificationUtils = {
 
   // Check if notifications are enabled
   areNotificationsEnabled: async (): Promise<boolean> => {
+    if (!isNotificationSupported) {
+      return false;
+    }
+
     try {
       const { status } = await Notifications.getPermissionsAsync();
       return status === 'granted';
@@ -58,6 +72,11 @@ export const notificationUtils = {
 
   // Schedule weekly reminder notification
   scheduleReminderNotification: async (settings: ReminderSettings): Promise<string | null> => {
+    if (!isNotificationSupported) {
+      console.log('Notifications not supported on this platform - skipping scheduling');
+      return null;
+    }
+
     try {
       if (!settings.enabled) {
         return null;
@@ -118,6 +137,11 @@ export const notificationUtils = {
 
   // Cancel all reminder notifications
   cancelReminderNotifications: async (): Promise<void> => {
+    if (!isNotificationSupported) {
+      console.log('Notifications not supported on this platform - skipping cancellation');
+      return;
+    }
+
     try {
       const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
       
@@ -136,6 +160,10 @@ export const notificationUtils = {
 
   // Get next scheduled reminder
   getNextScheduledReminder: async (): Promise<Date | null> => {
+    if (!isNotificationSupported) {
+      return null;
+    }
+
     try {
       const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
       
@@ -199,6 +227,10 @@ export const notificationUtils = {
 
   // Test notification (for development/testing)
   sendTestNotification: async (): Promise<void> => {
+    if (!isNotificationSupported) {
+      throw new Error('Notifications are not supported on this platform (web). Please use the app on iOS or Android to test notifications.');
+    }
+
     try {
       const hasPermissions = await notificationUtils.requestPermissions();
       if (!hasPermissions) {

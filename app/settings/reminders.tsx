@@ -17,6 +17,9 @@ import { reminderUtils } from '../../utils/reminderStorage';
 import { createTextStyle, useTheme } from '../../utils/theme';
 import { ReminderSettings } from '../../utils/types';
 
+// Check if notifications are supported on current platform
+const isNotificationSupported = Platform.OS === 'ios' || Platform.OS === 'android';
+
 const DAYS_OF_WEEK = [
   { value: 0, label: 'Sunday', short: 'Sun' },
   { value: 1, label: 'Monday', short: 'Mon' },
@@ -37,6 +40,10 @@ export default function Reminders() {
   const [loading, setLoading] = useState(true);
   const [nextReminder, setNextReminder] = useState<Date | null>(null);
   const [hasNotificationPermissions, setHasNotificationPermissions] = useState(false);
+  
+  // Temporary state for picker selections
+  const [tempDayOfWeek, setTempDayOfWeek] = useState<number>(1);
+  const [tempTime, setTempTime] = useState<string>('09:00');
 
   const styles = createStyles(theme);
 
@@ -99,6 +106,15 @@ export default function Reminders() {
   const handleToggleEnabled = async (enabled: boolean) => {
     if (!settings) return;
 
+    // Prevent enabling on unsupported platforms
+    if (!isNotificationSupported && enabled) {
+      Alert.alert(
+        'Platform Not Supported',
+        'Notifications are not supported on this platform. Please use the iOS or Android app to set up reminders.'
+      );
+      return;
+    }
+
     try {
       // Check and request notification permissions if enabling
       if (enabled) {
@@ -147,13 +163,17 @@ export default function Reminders() {
     }
   };
 
-  const handleDayChange = async (dayOfWeek: number) => {
+  const handleDaySelection = (dayOfWeek: number) => {
+    setTempDayOfWeek(dayOfWeek);
+  };
+
+  const handleDayConfirm = async () => {
     if (!settings) return;
 
     try {
       const updatedSettings = await reminderUtils.updateReminderSettings(
         settings.enabled,
-        dayOfWeek,
+        tempDayOfWeek,
         settings.time
       );
       setSettings(updatedSettings);
@@ -169,44 +189,45 @@ export default function Reminders() {
     }
   };
 
-  const handleTimeChange = async (event: any, selectedDate?: Date) => {
+  const handleDayCancel = () => {
+    setTempDayOfWeek(settings?.dayOfWeek ?? 1);
+    setShowDayPicker(false);
+  };
+
+  const handleTimeSelection = (event: any, selectedDate?: Date) => {
+    if (selectedDate && event.type !== 'dismissed') {
+      const hours = selectedDate.getHours().toString().padStart(2, '0');
+      const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+      setTempTime(timeString);
+    }
+  };
+
+  const handleTimeConfirm = async () => {
     if (!settings) return;
 
-    // On Android, hide picker first
-    if (Platform.OS === 'android') {
+    try {
+      const updatedSettings = await reminderUtils.updateReminderSettings(
+        settings.enabled,
+        settings.dayOfWeek,
+        tempTime
+      );
+      setSettings(updatedSettings);
       setShowTimePicker(false);
-    }
 
-    if (selectedDate && event.type !== 'dismissed') {
-      try {
-        const hours = selectedDate.getHours().toString().padStart(2, '0');
-        const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-        const timeString = `${hours}:${minutes}`;
-
-        const updatedSettings = await reminderUtils.updateReminderSettings(
-          settings.enabled,
-          settings.dayOfWeek,
-          timeString
-        );
-        setSettings(updatedSettings);
-
-        // On iOS, hide picker after selection
-        if (Platform.OS === 'ios') {
-          setShowTimePicker(false);
-        }
-
-        // Update notification scheduling if enabled
-        if (settings.enabled) {
-          await notificationUtils.updateReminderNotifications(updatedSettings);
-        }
-      } catch (error) {
-        console.error('Error updating time selection:', error);
-        Alert.alert('Error', 'Failed to update time selection');
+      // Update notification scheduling if enabled
+      if (settings.enabled) {
+        await notificationUtils.updateReminderNotifications(updatedSettings);
       }
-    } else {
-      // User cancelled, just hide picker
-      setShowTimePicker(false);
+    } catch (error) {
+      console.error('Error updating time selection:', error);
+      Alert.alert('Error', 'Failed to update time selection');
     }
+  };
+
+  const handleTimeCancel = () => {
+    setTempTime(settings?.time ?? '09:00');
+    setShowTimePicker(false);
   };
 
   // Convert time string to Date object for DateTimePicker
@@ -215,6 +236,17 @@ export default function Reminders() {
     const date = new Date();
     date.setHours(hours, minutes, 0, 0);
     return date;
+  };
+
+  // Initialize temp values when modals open
+  const openDayPicker = () => {
+    setTempDayOfWeek(settings?.dayOfWeek ?? 1);
+    setShowDayPicker(true);
+  };
+
+  const openTimePicker = () => {
+    setTempTime(settings?.time ?? '09:00');
+    setShowTimePicker(true);
   };
 
   const formatTimeDisplay = (time: string): string => {
@@ -268,6 +300,7 @@ export default function Reminders() {
         <Switch
           value={settings?.enabled || false}
           onValueChange={handleToggleEnabled}
+          disabled={!isNotificationSupported}
           trackColor={{ 
             false: theme.colors.border, 
             true: theme.colors.accent 
@@ -287,22 +320,22 @@ export default function Reminders() {
       </Text>
       
       <TouchableOpacity
-        style={[styles.picker, !settings?.enabled && styles.pickerDisabled]}
-        onPress={() => settings?.enabled && setShowDayPicker(true)}
-        disabled={!settings?.enabled}
+        style={[styles.picker, (!settings?.enabled || !isNotificationSupported) && styles.pickerDisabled]}
+        onPress={() => settings?.enabled && isNotificationSupported && openDayPicker()}
+        disabled={!settings?.enabled || !isNotificationSupported}
       >
         <View style={styles.pickerContent}>
-          <Text style={[styles.pickerLabel, !settings?.enabled && styles.pickerLabelDisabled]}>
+          <Text style={[styles.pickerLabel, (!settings?.enabled || !isNotificationSupported) && styles.pickerLabelDisabled]}>
             Day of Week
           </Text>
-          <Text style={[styles.pickerValue, !settings?.enabled && styles.pickerValueDisabled]}>
+          <Text style={[styles.pickerValue, (!settings?.enabled || !isNotificationSupported) && styles.pickerValueDisabled]}>
             {settings ? reminderUtils.getDayName(settings.dayOfWeek) : 'Monday'}
           </Text>
         </View>
         <Ionicons 
           name="chevron-forward" 
           size={20} 
-          color={settings?.enabled ? theme.colors.text.secondary : theme.colors.text.muted} 
+          color={(settings?.enabled && isNotificationSupported) ? theme.colors.text.secondary : theme.colors.text.muted} 
         />
       </TouchableOpacity>
     </View>
@@ -316,22 +349,22 @@ export default function Reminders() {
       </Text>
       
       <TouchableOpacity
-        style={[styles.picker, !settings?.enabled && styles.pickerDisabled]}
-        onPress={() => settings?.enabled && setShowTimePicker(true)}
-        disabled={!settings?.enabled}
+        style={[styles.picker, (!settings?.enabled || !isNotificationSupported) && styles.pickerDisabled]}
+        onPress={() => settings?.enabled && isNotificationSupported && openTimePicker()}
+        disabled={!settings?.enabled || !isNotificationSupported}
       >
         <View style={styles.pickerContent}>
-          <Text style={[styles.pickerLabel, !settings?.enabled && styles.pickerLabelDisabled]}>
+          <Text style={[styles.pickerLabel, (!settings?.enabled || !isNotificationSupported) && styles.pickerLabelDisabled]}>
             Time
           </Text>
-          <Text style={[styles.pickerValue, !settings?.enabled && styles.pickerValueDisabled]}>
+          <Text style={[styles.pickerValue, (!settings?.enabled || !isNotificationSupported) && styles.pickerValueDisabled]}>
             {settings ? formatTimeDisplay(settings.time) : '9:00 AM'}
           </Text>
         </View>
         <Ionicons 
           name="chevron-forward" 
           size={20} 
-          color={settings?.enabled ? theme.colors.text.secondary : theme.colors.text.muted} 
+          color={(settings?.enabled && isNotificationSupported) ? theme.colors.text.secondary : theme.colors.text.muted} 
         />
       </TouchableOpacity>
     </View>
@@ -346,8 +379,8 @@ export default function Reminders() {
           <Text style={styles.modalTitle}>Select Day</Text>
           <View style={styles.pickerWrapper}>
             <Picker
-              selectedValue={settings.dayOfWeek}
-              onValueChange={(value) => handleDayChange(value)}
+              selectedValue={tempDayOfWeek}
+              onValueChange={(value) => handleDaySelection(value)}
               style={styles.nativePicker}
             >
               {DAYS_OF_WEEK.map((day) => (
@@ -360,12 +393,20 @@ export default function Reminders() {
               ))}
             </Picker>
           </View>
-          <TouchableOpacity
-            style={[styles.modalButton, styles.cancelButton]}
-            onPress={() => setShowDayPicker(false)}
-          >
-            <Text style={styles.cancelButtonText}>Done</Text>
-          </TouchableOpacity>
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={handleDayCancel}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.saveButton]}
+              onPress={handleDayConfirm}
+            >
+              <Text style={styles.saveButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -374,37 +415,33 @@ export default function Reminders() {
   const renderTimePickerModal = () => {
     if (!settings) return null;
 
-    if (Platform.OS === 'ios') {
-      return (
-        <View style={styles.modal}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Time</Text>
-            <DateTimePicker
-              value={getTimeAsDate(settings.time)}
-              mode="time"
-              display="spinner"
-              onChange={handleTimeChange}
-              style={styles.timePicker}
-            />
+    return (
+      <View style={styles.modal}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Select Time</Text>
+          <DateTimePicker
+            value={getTimeAsDate(tempTime)}
+            mode="time"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleTimeSelection}
+            style={styles.timePicker}
+          />
+          <View style={styles.modalActions}>
             <TouchableOpacity
               style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setShowTimePicker(false)}
+              onPress={handleTimeCancel}
             >
-              <Text style={styles.cancelButtonText}>Done</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.saveButton]}
+              onPress={handleTimeConfirm}
+            >
+              <Text style={styles.saveButtonText}>OK</Text>
             </TouchableOpacity>
           </View>
         </View>
-      );
-    }
-
-    // Android will show the native time picker automatically
-    return (
-      <DateTimePicker
-        value={getTimeAsDate(settings.time)}
-        mode="time"
-        display="default"
-        onChange={handleTimeChange}
-      />
+      </View>
     );
   };
 
@@ -430,7 +467,7 @@ export default function Reminders() {
   };
 
   const renderTestSection = () => {
-    if (!settings?.enabled) return null;
+    if (!settings?.enabled || !isNotificationSupported) return null;
 
     return (
       <View style={styles.section}>
@@ -467,6 +504,18 @@ export default function Reminders() {
         <Text style={styles.pageDescription}>
           Set up reminders to help you remember to track tasks you've completed.
         </Text>
+
+        {!isNotificationSupported && (
+          <View style={styles.webNotice}>
+            <Ionicons name="information-circle-outline" size={20} color={theme.colors.semantic.warning} />
+            <View style={styles.webNoticeText}>
+              <Text style={styles.webNoticeTitle}>Web Platform Notice</Text>
+              <Text style={styles.webNoticeDescription}>
+                Notifications are not supported on web browsers. Please use the iOS or Android app to set up task reminders.
+              </Text>
+            </View>
+          </View>
+        )}
 
         {renderToggleSection()}
         {renderDayPicker()}
@@ -616,7 +665,13 @@ const createStyles = (theme: any) => StyleSheet.create({
     width: '100%',
     marginVertical: theme.spacing.lg,
   },
+  modalActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.lg,
+  },
   modalButton: {
+    flex: 1,
     borderRadius: theme.layout.borderRadius.medium,
     paddingVertical: theme.spacing.sm + theme.spacing.xs,
     alignItems: 'center',
@@ -628,6 +683,13 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   cancelButtonText: {
     ...createTextStyle(theme, 'button', theme.colors.text.secondary),
+    fontWeight: '600',
+  },
+  saveButton: {
+    backgroundColor: theme.colors.accent,
+  },
+  saveButtonText: {
+    ...createTextStyle(theme, 'button', theme.colors.surface),
     fontWeight: '600',
   },
   nextReminderInfo: {
@@ -669,5 +731,29 @@ const createStyles = (theme: any) => StyleSheet.create({
   testButtonText: {
     ...createTextStyle(theme, 'button', theme.colors.surface),
     fontWeight: '600',
+  },
+  webNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: theme.colors.semantic.warningBackground || theme.colors.secondaryBackground,
+    borderWidth: 1,
+    borderColor: theme.colors.semantic.warning,
+    borderRadius: theme.layout.borderRadius.medium,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  webNoticeText: {
+    flex: 1,
+  },
+  webNoticeTitle: {
+    ...createTextStyle(theme, 'bodyBase'),
+    fontWeight: '600',
+    color: theme.colors.semantic.warning,
+    marginBottom: theme.spacing.xs,
+  },
+  webNoticeDescription: {
+    ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),
+    lineHeight: 20,
   },
 });
