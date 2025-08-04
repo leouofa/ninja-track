@@ -24,13 +24,13 @@ export const reportsUtils = {
           day: 'numeric' 
         });
       case 'weeks':
-        // Show the Monday of the week
+        // Show the Monday of the week in M/D format
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay() + 1);
-        return `Week of ${weekStart.toLocaleDateString('en-US', { 
-          month: 'short', 
+        return weekStart.toLocaleDateString('en-US', { 
+          month: 'numeric', 
           day: 'numeric' 
-        })}`;
+        });
       case 'months':
         return date.toLocaleDateString('en-US', { 
           month: 'short', 

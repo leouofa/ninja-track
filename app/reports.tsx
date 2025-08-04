@@ -38,7 +38,7 @@ export default function Reports() {
       setTaskCompletions(loadedCompletions);
       
       // Generate chart data
-      const periods = selectedGrouping === 'days' ? 7 : selectedGrouping === 'weeks' ? 12 : 6;
+      const periods = selectedGrouping === 'days' ? 7 : selectedGrouping === 'weeks' ? 7 : 6;
 
       
       const aggregatedData = reportsUtils.aggregateCompletionData(
@@ -65,7 +65,7 @@ export default function Reports() {
     setIsLoading(true);
     
     try {
-      const periods = grouping === 'days' ? 7 : grouping === 'weeks' ? 12 : 6;
+      const periods = grouping === 'days' ? 7 : grouping === 'weeks' ? 7 : 6;
       const aggregatedData = reportsUtils.aggregateCompletionData(
         taskCompletions,
         tasks,
@@ -146,7 +146,7 @@ export default function Reports() {
             <Text style={styles.statValue}>{completionsThisPeriod}</Text>
             <Text style={styles.statLabel}>
               {selectedGrouping === 'days' ? 'Last 7 Days' : 
-               selectedGrouping === 'weeks' ? 'Last 12 Weeks' : 'Last 6 Months'}
+               selectedGrouping === 'weeks' ? 'Last 7 Weeks' : 'Last 6 Months'}
             </Text>
           </View>
           <View style={styles.statItem}>
