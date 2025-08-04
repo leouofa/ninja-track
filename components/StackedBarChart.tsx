@@ -42,7 +42,6 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
     value: dataPoint.total,
     label: dataPoint.period,
     frontColor: '#000000', // Black bars
-    spacing: 0, // No spacing between bars
     labelTextStyle: {
       color: theme.colors.text.muted,
       fontSize: 10,
@@ -51,7 +50,9 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
 
   // Calculate bar width to fit exactly across screen
   const availableWidth = chartWidth - 60; // Account for y-axis space
-  const barWidth = Math.floor(availableWidth / data.length) - 2; // Small margin between bars
+  const spacingValue = 6; // Increased spacing between bars
+  const totalSpacing = (data.length - 1) * spacingValue;
+  const barWidth = Math.max(10, Math.floor((availableWidth - totalSpacing) / data.length)); // Min width 10
 
   return (
     <View style={styles.container}>
@@ -74,7 +75,7 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
         }}
         isAnimated={false}
         barWidth={barWidth}
-        spacing={2}
+        spacing={spacingValue}
         hideRules={true}
         hideYAxisText={false}
       />
