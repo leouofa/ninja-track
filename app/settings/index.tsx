@@ -30,7 +30,7 @@ const SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
   {
     id: 'reminders',
     title: 'Reminders',
-    description: 'Set up weekly task tracking reminders',
+    description: 'Set up task tracking reminders',
     icon: 'notifications-outline',
     route: '/settings/reminders',
   },

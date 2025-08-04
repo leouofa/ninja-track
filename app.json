@@ -39,13 +39,19 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#ffffff",
-          "sounds": []
+          "color": "#ffffff"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7eb993f5-b494-4d16-921c-982d5c0dcd44"
+      }
+    },
+    "owner": "ohhhleonid"
   }
 }

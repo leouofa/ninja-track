@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import React, { useEffect } from "react";
-import { notificationService } from "../utils/notificationService";
+import React from "react";
 import { ThemeProvider, useTheme } from "../utils/theme";
 
 function TabsLayout() {
@@ -78,11 +77,6 @@ function TabsLayout() {
 }
 
 export default function RootLayout() {
-  useEffect(() => {
-    // Initialize notification service on app start
-    notificationService.initialize();
-  }, []);
-
   return (
     <ThemeProvider>
       <TabsLayout />

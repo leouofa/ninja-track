@@ -1,0 +1,225 @@
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
+import { ReminderSettings } from './types';
+
+// Configure notification handler
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
+export const notificationUtils = {
+  // Request notification permissions
+  requestPermissions: async (): Promise<boolean> => {
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        return false;
+      }
+
+      // For Android, configure notification channel
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('reminders', {
+          name: 'Task Reminders',
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+          sound: 'default',
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error requesting notification permissions:', error);
+      return false;
+    }
+  },
+
+  // Check if notifications are enabled
+  areNotificationsEnabled: async (): Promise<boolean> => {
+    try {
+      const { status } = await Notifications.getPermissionsAsync();
+      return status === 'granted';
+    } catch (error) {
+      console.error('Error checking notification permissions:', error);
+      return false;
+    }
+  },
+
+  // Schedule weekly reminder notification
+  scheduleReminderNotification: async (settings: ReminderSettings): Promise<string | null> => {
+    try {
+      if (!settings.enabled) {
+        return null;
+      }
+
+      // Cancel existing reminder notifications
+      await notificationUtils.cancelReminderNotifications();
+
+      // Check permissions
+      const hasPermissions = await notificationUtils.requestPermissions();
+      if (!hasPermissions) {
+        throw new Error('Notification permissions not granted');
+      }
+
+      // Parse time
+      const [hours, minutes] = settings.time.split(':').map(Number);
+      
+      // Calculate next notification time
+      const now = new Date();
+      const nextNotification = new Date();
+      
+      // Set to the desired day and time
+      const daysUntilTarget = (settings.dayOfWeek - now.getDay() + 7) % 7;
+      nextNotification.setDate(now.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
+      nextNotification.setHours(hours, minutes, 0, 0);
+
+      // If the time has already passed today and it's the same day, schedule for next week
+      if (daysUntilTarget === 0 && now.getTime() > nextNotification.getTime()) {
+        nextNotification.setDate(nextNotification.getDate() + 7);
+      }
+
+      const identifier = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Time to Track Your Tasks! 📝',
+          body: 'Don\'t forget to log the tasks you\'ve completed this week.',
+          sound: 'default',
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+          data: {
+            type: 'reminder',
+            source: 'ninja-track',
+          },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+          weekday: settings.dayOfWeek + 1, // Expo uses 1-7 (Sunday=1), we use 0-6
+          hour: hours,
+          minute: minutes,
+          repeats: true,
+        },
+      });
+
+      return identifier;
+    } catch (error) {
+      console.error('Error scheduling reminder notification:', error);
+      throw error;
+    }
+  },
+
+  // Cancel all reminder notifications
+  cancelReminderNotifications: async (): Promise<void> => {
+    try {
+      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      
+      // Filter and cancel reminder notifications
+      const reminderNotifications = scheduledNotifications.filter(
+        notification => notification.content.data?.type === 'reminder'
+      );
+
+      for (const notification of reminderNotifications) {
+        await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+      }
+    } catch (error) {
+      console.error('Error canceling reminder notifications:', error);
+    }
+  },
+
+  // Get next scheduled reminder
+  getNextScheduledReminder: async (): Promise<Date | null> => {
+    try {
+      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      
+      const reminderNotifications = scheduledNotifications.filter(
+        notification => notification.content.data?.type === 'reminder'
+      );
+
+      if (reminderNotifications.length === 0) {
+        return null;
+      }
+
+      // Find the next reminder
+      let nextDate: Date | null = null;
+      
+      for (const notification of reminderNotifications) {
+        const trigger = notification.trigger as any;
+        
+        if (trigger.type === 'weekly') {
+          // Calculate next occurrence
+          const now = new Date();
+          const targetDay = trigger.weekday - 1; // Convert from 1-7 to 0-6
+          const targetHour = trigger.hour;
+          const targetMinute = trigger.minute;
+          
+          const next = new Date();
+          const daysUntilTarget = (targetDay - now.getDay() + 7) % 7;
+          next.setDate(now.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
+          next.setHours(targetHour, targetMinute, 0, 0);
+          
+          // If the time has already passed today and it's the same day, schedule for next week
+          if (daysUntilTarget === 0 && now.getTime() > next.getTime()) {
+            next.setDate(next.getDate() + 7);
+          }
+          
+          if (!nextDate || next.getTime() < nextDate.getTime()) {
+            nextDate = next;
+          }
+        }
+      }
+
+      return nextDate;
+    } catch (error) {
+      console.error('Error getting next scheduled reminder:', error);
+      return null;
+    }
+  },
+
+  // Update reminder notifications when settings change
+  updateReminderNotifications: async (settings: ReminderSettings): Promise<void> => {
+    try {
+      if (settings.enabled) {
+        await notificationUtils.scheduleReminderNotification(settings);
+      } else {
+        await notificationUtils.cancelReminderNotifications();
+      }
+    } catch (error) {
+      console.error('Error updating reminder notifications:', error);
+      throw error;
+    }
+  },
+
+  // Test notification (for development/testing)
+  sendTestNotification: async (): Promise<void> => {
+    try {
+      const hasPermissions = await notificationUtils.requestPermissions();
+      if (!hasPermissions) {
+        throw new Error('Notification permissions not granted');
+      }
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Test Reminder 📝',
+          body: 'This is a test notification from Ninja Track.',
+          sound: 'default',
+          data: {
+            type: 'test',
+            source: 'ninja-track',
+          },
+        },
+        trigger: null, // Send immediately
+      });
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      throw error;
+    }
+  },
+};
