@@ -9,8 +9,8 @@ function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        // Tab Bar Styling (per style guide)
-        tabBarActiveTintColor: theme.colors.accent,
+        // Tab Bar Styling (per style guide) - Monochrome design
+        tabBarActiveTintColor: theme.colors.text.primary,
         tabBarInactiveTintColor: theme.colors.text.muted,
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
