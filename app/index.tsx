@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { categoryUtils } from '../utils/categoryStorage';
 import { taskCompletionUtils } from '../utils/taskCompletionStorage';
 import { taskUtils } from '../utils/taskStorage';
@@ -157,26 +157,32 @@ export default function Home() {
       <View style={styles.content}>
         <CalendarComponent />
         
-        <View style={styles.categoriesSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Your Categories</Text>
-            <Text style={styles.categoryCount}>({categories.length})</Text>
+        <ScrollView 
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.categoriesSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Your Categories</Text>
+              <Text style={styles.categoryCount}>({categories.length})</Text>
+            </View>
+            
+            {categories.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="folder-outline" size={48} color={theme.colors.text.muted} />
+                <Text style={styles.emptyTitle}>No categories yet</Text>
+                <Text style={styles.emptyDescription}>
+                  Go to Profile to create your first category and start tracking!
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.categoriesList}>
+                {categories.map(renderCategorySection)}
+              </View>
+            )}
           </View>
-          
-          {categories.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="folder-outline" size={48} color={theme.colors.text.muted} />
-              <Text style={styles.emptyTitle}>No categories yet</Text>
-              <Text style={styles.emptyDescription}>
-                Go to Profile to create your first category and start tracking!
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.categoriesList}>
-              {categories.map(renderCategorySection)}
-            </View>
-          )}
-        </View>
+        </ScrollView>
       </View>
     </View>
   );
@@ -192,9 +198,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingHorizontal: theme.spacing.container,
     paddingTop: theme.spacing.section,
   },
-
-  categoriesSection: {
+  scrollContainer: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: theme.spacing.xl,
+  },
+  categoriesSection: {
+    minHeight: '100%',
   },
   sectionHeader: {
     flexDirection: "row",
@@ -213,6 +225,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: theme.spacing.xxxl + theme.spacing.sm,
+    minHeight: 300,
   },
   emptyTitle: {
     ...createTextStyle(theme, 'h4', theme.colors.text.secondary),
@@ -225,7 +238,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     lineHeight: 22,
   },
   categoriesList: {
-    paddingBottom: theme.spacing.xl,
   },
   categorySection: {
     marginBottom: theme.spacing.xl,
