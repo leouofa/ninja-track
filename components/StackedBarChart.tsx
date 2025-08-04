@@ -30,7 +30,7 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   }
 
   const screenWidth = Dimensions.get('window').width;
-  const chartWidth = screenWidth - (theme.spacing.container * 2);
+  const chartWidth = screenWidth - (theme.spacing.container * 2) - (theme.spacing.lg * 2);
 
   // Calculate max value for proper y-axis scaling
   const maxValue = Math.max(...data.map(d => d.total), 5);
