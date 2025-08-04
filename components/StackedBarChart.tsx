@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { StackedBarChart as ChartKitStackedBarChart } from 'react-native-chart-kit';
+import { BarChart } from 'react-native-gifted-charts';
 import { ChartDataPoint } from '../utils/reportsUtils';
 import { createTextStyle, useTheme } from '../utils/theme';
 
@@ -32,46 +32,30 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   const screenWidth = Dimensions.get('window').width;
   const chartWidth = screenWidth - (theme.spacing.container * 2);
 
-  // Transform our data format to react-native-chart-kit format
-  const transformedData = {
-    labels: data.map(d => d.period),
-    legend: data.length > 0 ? data[0].categoryData.map(c => c.categoryName) : [],
-    data: data.map(dataPoint => 
-      dataPoint.categoryData.map(category => category.count)
-    ),
-    barColors: data.length > 0 ? data[0].categoryData.map(c => c.categoryColor) : []
-  };
+  // Calculate max value for proper y-axis scaling
+  const maxValue = Math.max(...data.map(d => d.total), 5);
+  const stepValue = Math.max(1, Math.ceil(maxValue / 8)); // Ensure whole number steps
+  const adjustedMaxValue = Math.ceil(maxValue / stepValue) * stepValue;
 
+  // Transform data to react-native-gifted-charts format for stacked bars
+  const transformedData = data.map((dataPoint, index) => {
+    // Create stacked segments for each bar
+    const stackData = dataPoint.categoryData.map((category, catIndex) => ({
+      value: category.count,
+      frontColor: category.categoryColor,
+    }));
 
-
-  const chartConfig = {
-    backgroundColor: theme.colors.surface,
-    backgroundGradientFrom: theme.colors.surface,
-    backgroundGradientTo: theme.colors.surface,
-    decimalPlaces: 0,
-    color: (opacity = 1) => theme.colors.text.muted,
-    labelColor: (opacity = 1) => theme.colors.text.muted,
-    style: {
-      borderRadius: theme.layout.borderRadius.large,
-    },
-    propsForBackgroundLines: {
-      strokeWidth: 1,
-      stroke: theme.colors.border,
-      strokeOpacity: 0.3,
-    },
-    propsForLabels: {
-      fontSize: 12,
-      fontFamily: 'System',
-      fill: theme.colors.text.muted,
-    },
-    barPercentage: 0.7,
-    fillShadowGradient: theme.colors.accent,
-    fillShadowGradientOpacity: 1,
-    formatYLabel: (yValue: string) => {
-      const num = parseFloat(yValue);
-      return Math.round(num).toString();
-    },
-  };
+    return {
+      value: dataPoint.total,
+      stackData: stackData,
+      label: dataPoint.period,
+      spacing: index === 0 ? 20 : 6, // More spacing for first bar
+      labelTextStyle: {
+        color: theme.colors.text.muted,
+        fontSize: 10,
+      },
+    };
+  });
 
   const chartComponentWidth = Math.max(chartWidth, data.length * 80);
 
@@ -79,15 +63,34 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
     <View style={styles.container}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={{ width: chartComponentWidth }}>
-          <ChartKitStackedBarChart
-            style={styles.chart}
+          <BarChart
             data={transformedData}
             width={chartComponentWidth}
-            height={height}
-            chartConfig={chartConfig}
-            withVerticalLabels={true}
-            withHorizontalLabels={true}
-            hideLegend={true}
+            height={height - 40}
+            maxValue={adjustedMaxValue}
+            stepValue={stepValue}
+            noOfSections={Math.ceil(adjustedMaxValue / stepValue)}
+            yAxisThickness={1}
+            yAxisColor={theme.colors.border}
+            xAxisThickness={1}
+            xAxisColor={theme.colors.border}
+            yAxisTextStyle={{
+              color: theme.colors.text.muted,
+              fontSize: 12,
+            }}
+            xAxisLabelTextStyle={{
+              color: theme.colors.text.muted,
+              fontSize: 10,
+              textAlign: 'center',
+            }}
+            isAnimated={false}
+            barWidth={40}
+            barBorderRadius={4}
+            spacing={6}
+            hideRules={false}
+            rulesColor={theme.colors.border}
+            rulesThickness={0.5}
+            hideYAxisText={false}
           />
         </View>
       </ScrollView>
