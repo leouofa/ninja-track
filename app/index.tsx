@@ -180,7 +180,7 @@ export default function Home() {
                 <Ionicons name="folder-outline" size={48} color={theme.colors.text.muted} />
                 <Text style={styles.emptyTitle}>No categories yet</Text>
                 <Text style={styles.emptyDescription}>
-                  Go to Profile to create your first category and start tracking!
+                  Go to Settings to create your first category and start tracking!
                 </Text>
               </View>
             ) : (
