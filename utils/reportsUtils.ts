@@ -33,8 +33,8 @@ export const reportsUtils = {
         });
       case 'months':
         return date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          year: 'numeric' 
+          month: 'numeric', 
+          year: '2-digit' 
         });
       default:
         return date.toLocaleDateString();
