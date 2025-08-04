@@ -116,27 +116,36 @@ export default function Home() {
     return days;
   };
 
+  const getDayLabel = (date: Date) => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return days[date.getDay()];
+  };
+
   const renderCalendarDay = (date: Date) => {
     const isSelected = date.toDateString() === selectedDate.toDateString();
     const isToday = date.toDateString() === new Date().toDateString();
     
     return (
-      <TouchableOpacity
-        key={date.toDateString()}
-        style={[
-          styles.calendarDay,
-          isSelected && styles.calendarDaySelected,
-          isToday && styles.calendarDayToday
-        ]}
-        onPress={() => setSelectedDate(date)}
-      >
-        <Text style={[
-          styles.calendarDayText,
-          isSelected && styles.calendarDayTextSelected
-        ]}>
-          {date.getDate()}
+      <View key={date.toDateString()} style={styles.calendarDayContainer}>
+        <TouchableOpacity
+          style={[
+            styles.calendarDay,
+            isSelected && styles.calendarDaySelected,
+            isToday && styles.calendarDayToday
+          ]}
+          onPress={() => setSelectedDate(date)}
+        >
+          <Text style={[
+            styles.calendarDayText,
+            isSelected && styles.calendarDayTextSelected
+          ]}>
+            {date.getDate()}
+          </Text>
+        </TouchableOpacity>
+        <Text style={styles.calendarDayLabel}>
+          {getDayLabel(date)}
         </Text>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -158,7 +167,7 @@ export default function Home() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.subtitle}>
-            Tracking progress for the last 7 days.
+            Last 7 days of progress.
           </Text>
         </View>
         
@@ -171,7 +180,7 @@ export default function Home() {
         >
           <View style={styles.categoriesSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Categories</Text>
+              <Text style={styles.sectionTitle}>Tracked Categories</Text>
               <Text style={styles.categoryCount}>({categories.length})</Text>
             </View>
             
@@ -341,5 +350,14 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   calendarDayTextSelected: {
     color: theme.colors.surface,
+  },
+  calendarDayContainer: {
+    alignItems: 'center',
+  },
+  calendarDayLabel: {
+    ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: theme.spacing.xs,
   },
 });

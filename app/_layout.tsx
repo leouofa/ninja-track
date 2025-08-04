@@ -47,7 +47,7 @@ function TabsLayout() {
         name="index"
         options={{
           title: "Home",
-          headerTitle: "Ninja Track",
+          headerTitle: "Progress Tracking",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={24} color={color} />
           ),
