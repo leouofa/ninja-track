@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { ChartDataPoint } from '../utils/reportsUtils';
 import { createTextStyle, useTheme } from '../utils/theme';
@@ -37,80 +37,47 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   const stepValue = Math.max(1, Math.ceil(maxValue / 8)); // Ensure whole number steps
   const adjustedMaxValue = Math.ceil(maxValue / stepValue) * stepValue;
 
-  // Transform data to react-native-gifted-charts format for stacked bars
-  const transformedData = data.map((dataPoint, index) => {
-    // Create stacked segments for each bar
-    const stackData = dataPoint.categoryData.map((category, catIndex) => ({
-      value: category.count,
-      frontColor: category.categoryColor,
-    }));
+  // Transform data to react-native-gifted-charts format - using simple bars for now
+  const transformedData = data.map((dataPoint, index) => ({
+    value: dataPoint.total,
+    label: dataPoint.period,
+    frontColor: '#000000', // Black bars
+    spacing: 0, // No spacing between bars
+    labelTextStyle: {
+      color: theme.colors.text.muted,
+      fontSize: 10,
+    },
+  }));
 
-    return {
-      value: dataPoint.total,
-      stackData: stackData,
-      label: dataPoint.period,
-      spacing: index === 0 ? 20 : 6, // More spacing for first bar
-      labelTextStyle: {
-        color: theme.colors.text.muted,
-        fontSize: 10,
-      },
-    };
-  });
-
-  const chartComponentWidth = Math.max(chartWidth, data.length * 80);
+  // Calculate bar width to fit exactly across screen
+  const availableWidth = chartWidth - 60; // Account for y-axis space
+  const barWidth = Math.floor(availableWidth / data.length) - 2; // Small margin between bars
 
   return (
     <View style={styles.container}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={{ width: chartComponentWidth }}>
-          <BarChart
-            data={transformedData}
-            width={chartComponentWidth}
-            height={height - 40}
-            maxValue={adjustedMaxValue}
-            stepValue={stepValue}
-            noOfSections={Math.ceil(adjustedMaxValue / stepValue)}
-            yAxisThickness={1}
-            yAxisColor={theme.colors.border}
-            xAxisThickness={1}
-            xAxisColor={theme.colors.border}
-            yAxisTextStyle={{
-              color: theme.colors.text.muted,
-              fontSize: 12,
-            }}
-            xAxisLabelTextStyle={{
-              color: theme.colors.text.muted,
-              fontSize: 10,
-              textAlign: 'center',
-            }}
-            isAnimated={false}
-            barWidth={40}
-            barBorderRadius={4}
-            spacing={6}
-            hideRules={false}
-            rulesColor={theme.colors.border}
-            rulesThickness={0.5}
-            hideYAxisText={false}
-          />
-        </View>
-      </ScrollView>
-      
-      {/* Custom Legend at Bottom */}
-      {data.length > 0 && data[0].categoryData.length > 0 && (
-        <View style={styles.legend}>
-          {data[0].categoryData.map((category, index) => (
-            <View key={`legend-${index}`} style={styles.legendItem}>
-              <View 
-                style={[
-                  styles.legendColor, 
-                  { backgroundColor: category.categoryColor }
-                ]} 
-              />
-              <Text style={styles.legendText}>{category.categoryName}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+      <BarChart
+        data={transformedData}
+        width={chartWidth}
+        height={height - 40}
+        maxValue={adjustedMaxValue}
+        stepValue={stepValue}
+        noOfSections={Math.ceil(adjustedMaxValue / stepValue)}
+        yAxisThickness={0}
+        xAxisThickness={0}
+        yAxisTextStyle={{
+          color: theme.colors.text.muted,
+          fontSize: 12,
+        }}
+        xAxisLabelTextStyle={{
+          color: theme.colors.text.muted,
+          fontSize: 10,
+        }}
+        isAnimated={false}
+        barWidth={barWidth}
+        spacing={2}
+        hideRules={true}
+        hideYAxisText={false}
+      />
     </View>
   );
 };
@@ -128,30 +95,6 @@ const createStyles = (theme: any, height: number) => StyleSheet.create({
   },
   chart: {
     borderRadius: theme.layout.borderRadius.medium,
-  },
-  legend: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: theme.spacing.lg,
-    marginBottom: theme.spacing.sm,
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: theme.spacing.sm,
-  },
-  legendText: {
-    ...createTextStyle(theme, 'bodySmall'),
-    fontSize: 12,
   },
   emptyChart: {
     height: 200,
