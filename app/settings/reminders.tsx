@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -146,7 +147,7 @@ export default function Reminders() {
     }
   };
 
-  const handleDaySelect = async (dayOfWeek: number) => {
+  const handleDayChange = async (dayOfWeek: number) => {
     if (!settings) return;
 
     try {
@@ -336,41 +337,39 @@ export default function Reminders() {
     </View>
   );
 
-  const renderDayPickerModal = () => (
-    <View style={styles.modal}>
-      <View style={styles.modalContent}>
-        <Text style={styles.modalTitle}>Select Day</Text>
-        <ScrollView style={styles.optionsList} showsVerticalScrollIndicator={false}>
-          {DAYS_OF_WEEK.map((day) => (
-            <TouchableOpacity
-              key={day.value}
-              style={[
-                styles.optionItem,
-                settings?.dayOfWeek === day.value && styles.selectedOption,
-              ]}
-              onPress={() => handleDaySelect(day.value)}
+  const renderDayPickerModal = () => {
+    if (!settings) return null;
+
+    return (
+      <View style={styles.modal}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Select Day</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={settings.dayOfWeek}
+              onValueChange={(value) => handleDayChange(value)}
+              style={styles.nativePicker}
             >
-              <Text style={[
-                styles.optionText,
-                settings?.dayOfWeek === day.value && styles.selectedOptionText,
-              ]}>
-                {day.label}
-              </Text>
-              {settings?.dayOfWeek === day.value && (
-                <Ionicons name="checkmark" size={20} color={theme.colors.accent} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        <TouchableOpacity
-          style={[styles.modalButton, styles.cancelButton]}
-          onPress={() => setShowDayPicker(false)}
-        >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
+              {DAYS_OF_WEEK.map((day) => (
+                <Picker.Item 
+                  key={day.value} 
+                  label={day.label} 
+                  value={day.value}
+                  color={theme.colors.text.primary}
+                />
+              ))}
+            </Picker>
+          </View>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.cancelButton]}
+            onPress={() => setShowDayPicker(false)}
+          >
+            <Text style={styles.cancelButtonText}>Done</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderTimePickerModal = () => {
     if (!settings) return null;
@@ -576,6 +575,17 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   pickerValueDisabled: {
     color: theme.colors.text.muted,
+  },
+  pickerWrapper: {
+    backgroundColor: theme.colors.surface,
+    marginVertical: theme.spacing.md,
+  },
+  nativePicker: {
+    backgroundColor: theme.colors.surface,
+    color: theme.colors.text.primary,
+    ...(Platform.OS === 'ios' && {
+      marginVertical: -8, // Adjust for iOS picker padding
+    }),
   },
   modal: {
     position: 'absolute',
