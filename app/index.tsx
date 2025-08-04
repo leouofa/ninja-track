@@ -155,6 +155,13 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.subtitle}>
+            Tracking progress for the last 7 days.
+          </Text>
+        </View>
+        
         <CalendarComponent />
         
         <ScrollView 
@@ -164,7 +171,7 @@ export default function Home() {
         >
           <View style={styles.categoriesSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Your Categories</Text>
+              <Text style={styles.sectionTitle}>Categories</Text>
               <Text style={styles.categoryCount}>({categories.length})</Text>
             </View>
             
@@ -197,6 +204,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     paddingHorizontal: theme.spacing.container,
     paddingTop: theme.spacing.section,
+  },
+  header: {
+    paddingHorizontal: theme.spacing.container,
+    paddingBottom: theme.spacing.md,
+  },
+  subtitle: {
+    ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
+    lineHeight: 20,
+    textAlign: 'center',
   },
   scrollContainer: {
     flex: 1,

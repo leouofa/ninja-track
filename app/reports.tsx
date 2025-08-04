@@ -128,9 +128,8 @@ export default function Reports() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Completion Reports</Text>
           <Text style={styles.subtitle}>
-            Track your productivity across categories over time
+            Visualize your momentum across categories over time.
           </Text>
         </View>
 
@@ -247,6 +246,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   subtitle: {
     ...createTextStyle(theme, 'bodyBase', theme.colors.text.secondary),
     lineHeight: 20,
+    textAlign: 'center',
   },
   statsContainer: {
     flexDirection: 'row',
