@@ -70,7 +70,7 @@ export const notificationUtils = {
     }
   },
 
-  // Schedule weekly reminder notification
+  // Schedule daily reminder notification
   scheduleReminderNotification: async (settings: ReminderSettings): Promise<string | null> => {
     if (!isNotificationSupported) {
       console.log('Notifications not supported on this platform - skipping scheduling');
@@ -93,25 +93,11 @@ export const notificationUtils = {
 
       // Parse time
       const [hours, minutes] = settings.time.split(':').map(Number);
-      
-      // Calculate next notification time
-      const now = new Date();
-      const nextNotification = new Date();
-      
-      // Set to the desired day and time
-      const daysUntilTarget = (settings.dayOfWeek - now.getDay() + 7) % 7;
-      nextNotification.setDate(now.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
-      nextNotification.setHours(hours, minutes, 0, 0);
-
-      // If the time has already passed today and it's the same day, schedule for next week
-      if (daysUntilTarget === 0 && now.getTime() > nextNotification.getTime()) {
-        nextNotification.setDate(nextNotification.getDate() + 7);
-      }
 
       const identifier = await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Time to Track Your Tasks! 📝',
-          body: 'Don\'t forget to log the tasks you\'ve completed this week.',
+          body: 'Don\'t forget to log the tasks you\'ve completed today.',
           sound: 'default',
           priority: Notifications.AndroidNotificationPriority.HIGH,
           data: {
@@ -120,8 +106,7 @@ export const notificationUtils = {
           },
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-          weekday: settings.dayOfWeek + 1, // Expo uses 1-7 (Sunday=1), we use 0-6
+          type: Notifications.SchedulableTriggerInputTypes.DAILY,
           hour: hours,
           minute: minutes,
           repeats: true,
@@ -181,21 +166,18 @@ export const notificationUtils = {
       for (const notification of reminderNotifications) {
         const trigger = notification.trigger as any;
         
-        if (trigger.type === 'weekly') {
+        if (trigger.type === 'daily') {
           // Calculate next occurrence
           const now = new Date();
-          const targetDay = trigger.weekday - 1; // Convert from 1-7 to 0-6
           const targetHour = trigger.hour;
           const targetMinute = trigger.minute;
           
           const next = new Date();
-          const daysUntilTarget = (targetDay - now.getDay() + 7) % 7;
-          next.setDate(now.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
           next.setHours(targetHour, targetMinute, 0, 0);
           
-          // If the time has already passed today and it's the same day, schedule for next week
-          if (daysUntilTarget === 0 && now.getTime() > next.getTime()) {
-            next.setDate(next.getDate() + 7);
+          // If the time has already passed today, schedule for tomorrow
+          if (now.getTime() > next.getTime()) {
+            next.setDate(next.getDate() + 1);
           }
           
           if (!nextDate || next.getTime() < nextDate.getTime()) {

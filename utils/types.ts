@@ -22,7 +22,6 @@ export interface TaskCompletion {
 export interface ReminderSettings {
   id: string;
   enabled: boolean;
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
   time: string; // Time in format "HH:MM" (24-hour)
   createdAt: Date;
   updatedAt: Date;

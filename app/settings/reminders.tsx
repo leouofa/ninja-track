@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
+
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -20,29 +20,20 @@ import { ReminderSettings } from '../../utils/types';
 // Check if notifications are supported on current platform
 const isNotificationSupported = Platform.OS === 'ios' || Platform.OS === 'android';
 
-const DAYS_OF_WEEK = [
-  { value: 0, label: 'Sunday', short: 'Sun' },
-  { value: 1, label: 'Monday', short: 'Mon' },
-  { value: 2, label: 'Tuesday', short: 'Tue' },
-  { value: 3, label: 'Wednesday', short: 'Wed' },
-  { value: 4, label: 'Thursday', short: 'Thu' },
-  { value: 5, label: 'Friday', short: 'Fri' },
-  { value: 6, label: 'Saturday', short: 'Sat' },
-];
+
 
 
 
 export default function Reminders() {
   const { theme } = useTheme();
   const [settings, setSettings] = useState<ReminderSettings | null>(null);
-  const [showDayPicker, setShowDayPicker] = useState(false);
+
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const [nextReminder, setNextReminder] = useState<Date | null>(null);
   const [hasNotificationPermissions, setHasNotificationPermissions] = useState(false);
   
   // Temporary state for picker selections
-  const [tempDayOfWeek, setTempDayOfWeek] = useState<number>(1);
   const [tempTime, setTempTime] = useState<string>('09:00');
 
   const styles = createStyles(theme);
@@ -72,7 +63,6 @@ export default function Reminders() {
         const defaultSettings = reminderUtils.getDefaultSettings();
         const newSettings = await reminderUtils.updateReminderSettings(
           defaultSettings.enabled,
-          defaultSettings.dayOfWeek,
           defaultSettings.time
         );
         setSettings(newSettings);
@@ -138,7 +128,6 @@ export default function Reminders() {
 
       const updatedSettings = await reminderUtils.updateReminderSettings(
         enabled,
-        settings.dayOfWeek,
         settings.time
       );
       setSettings(updatedSettings);
@@ -149,7 +138,7 @@ export default function Reminders() {
       if (enabled) {
         Alert.alert(
           'Reminders Enabled',
-          `You will receive reminders on ${reminderUtils.getDayName(settings.dayOfWeek)} at ${formatTimeDisplay(settings.time)}`
+          `You will receive daily reminders at ${formatTimeDisplay(settings.time)}`
         );
       } else {
         Alert.alert(
@@ -163,36 +152,7 @@ export default function Reminders() {
     }
   };
 
-  const handleDaySelection = (dayOfWeek: number) => {
-    setTempDayOfWeek(dayOfWeek);
-  };
 
-  const handleDayConfirm = async () => {
-    if (!settings) return;
-
-    try {
-      const updatedSettings = await reminderUtils.updateReminderSettings(
-        settings.enabled,
-        tempDayOfWeek,
-        settings.time
-      );
-      setSettings(updatedSettings);
-      setShowDayPicker(false);
-
-      // Update notification scheduling if enabled
-      if (settings.enabled) {
-        await notificationUtils.updateReminderNotifications(updatedSettings);
-      }
-    } catch (error) {
-      console.error('Error updating day selection:', error);
-      Alert.alert('Error', 'Failed to update day selection');
-    }
-  };
-
-  const handleDayCancel = () => {
-    setTempDayOfWeek(settings?.dayOfWeek ?? 1);
-    setShowDayPicker(false);
-  };
 
   const handleTimeSelection = (event: any, selectedDate?: Date) => {
     if (selectedDate && event.type !== 'dismissed') {
@@ -209,7 +169,6 @@ export default function Reminders() {
     try {
       const updatedSettings = await reminderUtils.updateReminderSettings(
         settings.enabled,
-        settings.dayOfWeek,
         tempTime
       );
       setSettings(updatedSettings);
@@ -239,11 +198,6 @@ export default function Reminders() {
   };
 
   // Initialize temp values when modals open
-  const openDayPicker = () => {
-    setTempDayOfWeek(settings?.dayOfWeek ?? 1);
-    setShowDayPicker(true);
-  };
-
   const openTimePicker = () => {
     setTempTime(settings?.time ?? '09:00');
     setShowTimePicker(true);
@@ -287,7 +241,7 @@ export default function Reminders() {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Enable Reminders</Text>
       <Text style={styles.sectionDescription}>
-        Get reminded to track tasks you've completed
+        Get reminded to track tasks you&apos;ve completed
       </Text>
       
       <View style={styles.toggleRow}>
@@ -312,34 +266,7 @@ export default function Reminders() {
     </View>
   );
 
-  const renderDayPicker = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Reminder Day</Text>
-      <Text style={styles.sectionDescription}>
-        Choose which day of the week to receive reminders
-      </Text>
-      
-      <TouchableOpacity
-        style={[styles.picker, (!settings?.enabled || !isNotificationSupported) && styles.pickerDisabled]}
-        onPress={() => settings?.enabled && isNotificationSupported && openDayPicker()}
-        disabled={!settings?.enabled || !isNotificationSupported}
-      >
-        <View style={styles.pickerContent}>
-          <Text style={[styles.pickerLabel, (!settings?.enabled || !isNotificationSupported) && styles.pickerLabelDisabled]}>
-            Day of Week
-          </Text>
-          <Text style={[styles.pickerValue, (!settings?.enabled || !isNotificationSupported) && styles.pickerValueDisabled]}>
-            {settings ? reminderUtils.getDayName(settings.dayOfWeek) : 'Monday'}
-          </Text>
-        </View>
-        <Ionicons 
-          name="chevron-forward" 
-          size={20} 
-          color={(settings?.enabled && isNotificationSupported) ? theme.colors.text.secondary : theme.colors.text.muted} 
-        />
-      </TouchableOpacity>
-    </View>
-  );
+
 
   const renderTimePicker = () => (
     <View style={styles.section}>
@@ -370,47 +297,7 @@ export default function Reminders() {
     </View>
   );
 
-  const renderDayPickerModal = () => {
-    if (!settings) return null;
 
-    return (
-      <View style={styles.modal}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Select Day</Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={tempDayOfWeek}
-              onValueChange={(value) => handleDaySelection(value)}
-              style={styles.nativePicker}
-            >
-              {DAYS_OF_WEEK.map((day) => (
-                <Picker.Item 
-                  key={day.value} 
-                  label={day.label} 
-                  value={day.value}
-                  color={theme.colors.text.primary}
-                />
-              ))}
-            </Picker>
-          </View>
-          <View style={styles.modalActions}>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.cancelButton]}
-              onPress={handleDayCancel}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.saveButton]}
-              onPress={handleDayConfirm}
-            >
-              <Text style={styles.saveButtonText}>OK</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    );
-  };
 
   const renderTimePickerModal = () => {
     if (!settings) return null;
@@ -458,7 +345,7 @@ export default function Reminders() {
               {formatNextReminderDate(nextReminder)}
             </Text>
             <Text style={styles.nextReminderTime}>
-              {formatTimeDisplay(settings.time)} on {reminderUtils.getDayName(settings.dayOfWeek)}
+              Daily at {formatTimeDisplay(settings.time)}
             </Text>
           </View>
         </View>
@@ -502,7 +389,7 @@ export default function Reminders() {
     <View style={styles.container}>
       <ScrollView style={styles.content}>
         <Text style={styles.pageDescription}>
-          Set up reminders to help you remember to track tasks you've completed.
+          Set up reminders to help you remember to track tasks you&apos;ve completed.
         </Text>
 
         {!isNotificationSupported && (
@@ -518,14 +405,10 @@ export default function Reminders() {
         )}
 
         {renderToggleSection()}
-        {renderDayPicker()}
         {renderTimePicker()}
         {renderNextReminderSection()}
         {renderTestSection()}
       </ScrollView>
-
-      {/* Day Picker Modal */}
-      {showDayPicker && renderDayPickerModal()}
 
       {/* Time Picker Modal */}
       {showTimePicker && renderTimePickerModal()}

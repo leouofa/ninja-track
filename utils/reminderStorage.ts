@@ -25,10 +25,7 @@ export const reminderUtils = {
     return '09:00';
   },
 
-  // Validate day of week (0-6)
-  isValidDayOfWeek: (day: number): boolean => {
-    return Number.isInteger(day) && day >= 0 && day <= 6;
-  },
+
 
   // Validate time format
   isValidTimeFormat: (time: string): boolean => {
@@ -36,17 +33,7 @@ export const reminderUtils = {
     return timeRegex.test(time);
   },
 
-  // Get day name from day number
-  getDayName: (dayOfWeek: number): string => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[dayOfWeek] || 'Unknown';
-  },
 
-  // Get day abbreviation from day number
-  getDayAbbreviation: (dayOfWeek: number): string => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    return days[dayOfWeek] || '?';
-  },
 
   // Load reminder settings
   loadReminderSettings: async (): Promise<ReminderSettings | null> => {
@@ -82,15 +69,9 @@ export const reminderUtils = {
   // Create or update reminder settings
   updateReminderSettings: async (
     enabled: boolean,
-    dayOfWeek: number,
     time: string
   ): Promise<ReminderSettings> => {
     try {
-      // Validate inputs
-      if (!reminderUtils.isValidDayOfWeek(dayOfWeek)) {
-        throw new Error('Invalid day of week');
-      }
-
       const formattedTime = reminderUtils.formatTime(time);
       if (!reminderUtils.isValidTimeFormat(formattedTime)) {
         throw new Error('Invalid time format');
@@ -103,7 +84,6 @@ export const reminderUtils = {
       const settings: ReminderSettings = {
         id: existingSettings?.id || reminderUtils.generateId(),
         enabled,
-        dayOfWeek,
         time: formattedTime,
         createdAt: existingSettings?.createdAt || now,
         updatedAt: now
@@ -121,7 +101,6 @@ export const reminderUtils = {
   getDefaultSettings: (): Omit<ReminderSettings, 'id' | 'createdAt' | 'updatedAt'> => {
     return {
       enabled: false,
-      dayOfWeek: 1, // Monday
       time: '09:00'
     };
   },
