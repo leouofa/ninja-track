@@ -18,3 +18,11 @@ export interface TaskCompletion {
   date: string; // ISO date string (YYYY-MM-DD)
   completedAt: Date;
 }
+
+export interface ReminderSettings {
+  id: string;
+  enabled: boolean;
+  time: string; // Time in format "HH:MM" (24-hour)
+  createdAt: Date;
+  updatedAt: Date;
+}
