@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { exportUtils } from '../../utils/exportUtils';
 import { createTextStyle, useTheme } from '../../utils/theme';
 
@@ -15,7 +15,7 @@ interface SettingsMenuItem {
 }
 
 export default function Settings() {
-  const { theme, isDarkMode, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const styles = createStyles(theme);
 
   const handleExport = async () => {
@@ -61,7 +61,7 @@ export default function Settings() {
     {
       id: 'export',
       title: 'Export Data',
-      description: 'Export your task completion data to CSV',
+      description: 'Export your completion data to CSV',
       icon: 'download-outline',
       action: handleExport,
     },
@@ -76,7 +76,7 @@ export default function Settings() {
             activeOpacity={0.98}
           >
             <View style={styles.menuItemIcon}>
-              <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
+              <Ionicons name={item.icon} size={24} color={theme.colors.text.secondary} />
             </View>
             <View style={styles.menuItemContent}>
               <Text style={styles.menuItemTitle}>{item.title}</Text>
@@ -95,7 +95,7 @@ export default function Settings() {
           onPress={item.action}
         >
           <View style={styles.menuItemIcon}>
-            <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
+            <Ionicons name={item.icon} size={24} color={theme.colors.text.secondary} />
           </View>
           <View style={styles.menuItemContent}>
             <Text style={styles.menuItemTitle}>{item.title}</Text>
@@ -107,44 +107,17 @@ export default function Settings() {
     }
   };
 
-  const renderThemeToggle = () => (
-    <View style={styles.menuItem}>
-      <View style={styles.menuItemIcon}>
-        <Ionicons 
-          name={isDarkMode ? "sunny" : "moon"} 
-          size={24} 
-          color={theme.colors.accent} 
-        />
-      </View>
-      <View style={styles.menuItemContent}>
-        <Text style={styles.menuItemTitle}>Theme</Text>
-        <Text style={styles.menuItemDescription}>
-          {isDarkMode ? "Dark mode" : "Light mode"}
-        </Text>
-      </View>
-      <Switch
-        value={isDarkMode}
-        onValueChange={toggleTheme}
-        trackColor={{ 
-          false: theme.colors.border, 
-          true: theme.colors.accent 
-        }}
-        thumbColor={isDarkMode ? theme.colors.surface : theme.colors.surface}
-        ios_backgroundColor={theme.colors.border}
-      />
-    </View>
-  );
+
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
         <Text style={styles.subtitle}>
-          Configure your Ninja Track preferences and account settings.
+          Configure your preferences and account settings.
         </Text>
 
         <View style={styles.menuSection}>
           {SETTINGS_MENU_ITEMS.map(renderMenuItem)}
-          {renderThemeToggle()}
         </View>
 
         <View style={styles.footer}>

@@ -15,9 +15,9 @@ import { createTextStyle, useTheme } from '../../utils/theme';
 import { Category } from '../../utils/types';
 
 const PREDEFINED_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57',
-  '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43',
-  '#FC427B', '#0ABDE3', '#C44569', '#F8B500', '#6C5CE7'
+  '#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6',
+  '#1ABC9C', '#E67E22', '#34495E', '#F1C40F', '#8E44AD',
+  '#E91E63', '#FF5722', '#607D8B', '#795548'
 ];
 
 export default function Categories() {
@@ -132,14 +132,14 @@ export default function Categories() {
           onPress={() => handleEditCategory(item)}
           activeOpacity={0.98}
         >
-          <Ionicons name="pencil" size={16} color={theme.colors.accent} />
+                          <Ionicons name="pencil" size={16} color={theme.colors.text.secondary} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => handleDeleteCategory(item)}
           activeOpacity={0.98}
         >
-          <Ionicons name="trash" size={16} color={theme.colors.semantic.error} />
+                          <Ionicons name="trash" size={16} color={theme.colors.text.secondary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -293,11 +293,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderColor: "transparent",
   },
   selectedColor: {
-    borderColor: theme.colors.accent,
+    borderColor: '#111111',
     borderWidth: 3,
   },
   addButton: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.text.primary,
     borderRadius: theme.layout.borderRadius.medium,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm + theme.spacing.xs, // 14pt per style guide
@@ -400,7 +400,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: "600",
   },
   saveButton: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.text.primary,
   },
   saveButtonText: {
     ...createTextStyle(theme, 'button', theme.colors.surface),

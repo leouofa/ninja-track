@@ -2,14 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    FlatList,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { categoryUtils } from '../../utils/categoryStorage';
 import { taskUtils } from '../../utils/taskStorage';
@@ -197,14 +197,14 @@ export default function Tasks() {
             onPress={() => handleEditTask(item)}
             activeOpacity={0.98}
           >
-            <Ionicons name="pencil" size={16} color={theme.colors.accent} />
+                            <Ionicons name="pencil" size={16} color={theme.colors.text.secondary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleDeleteTask(item)}
             activeOpacity={0.98}
           >
-            <Ionicons name="trash" size={16} color={theme.colors.semantic.error} />
+                            <Ionicons name="trash" size={16} color={theme.colors.text.secondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -421,7 +421,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginLeft: theme.spacing.sm,
   },
   addButton: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.text.primary,
     borderRadius: theme.layout.borderRadius.medium,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm + theme.spacing.xs,
@@ -555,7 +555,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: "600",
   },
   saveButton: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.text.primary,
   },
   saveButtonText: {
     ...createTextStyle(theme, 'button', theme.colors.surface),

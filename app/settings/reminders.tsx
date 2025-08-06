@@ -3,14 +3,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { notificationUtils } from '../../utils/notificationUtils';
 import { reminderUtils } from '../../utils/reminderStorage';
@@ -227,15 +227,7 @@ export default function Reminders() {
     }
   };
 
-  const handleTestNotification = async () => {
-    try {
-      await notificationUtils.sendTestNotification();
-      Alert.alert('Test Sent', 'A test notification has been sent!');
-    } catch (error) {
-      console.error('Error sending test notification:', error);
-      Alert.alert('Error', 'Failed to send test notification. Please check your notification permissions.');
-    }
-  };
+
 
   const renderToggleSection = () => (
     <View style={styles.section}>
@@ -257,7 +249,7 @@ export default function Reminders() {
           disabled={!isNotificationSupported}
           trackColor={{ 
             false: theme.colors.border, 
-            true: theme.colors.accent 
+            true: theme.colors.text.secondary 
           }}
           thumbColor={settings?.enabled ? theme.colors.surface : theme.colors.surface}
           ios_backgroundColor={theme.colors.border}
@@ -353,28 +345,6 @@ export default function Reminders() {
     );
   };
 
-  const renderTestSection = () => {
-    if (!settings?.enabled || !isNotificationSupported) return null;
-
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Test Notification</Text>
-        <Text style={styles.sectionDescription}>
-          Send a test notification to make sure everything is working correctly
-        </Text>
-        
-        <TouchableOpacity
-          style={[styles.testButton, !hasNotificationPermissions && styles.testButtonDisabled]}
-          onPress={handleTestNotification}
-          disabled={!hasNotificationPermissions}
-        >
-          <Ionicons name="notifications-outline" size={16} color={theme.colors.surface} />
-          <Text style={styles.testButtonText}>Send Test Notification</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
   if (loading) {
     return (
       <View style={styles.container}>
@@ -407,7 +377,6 @@ export default function Reminders() {
         {renderToggleSection()}
         {renderTimePicker()}
         {renderNextReminderSection()}
-        {renderTestSection()}
       </ScrollView>
 
       {/* Time Picker Modal */}
@@ -569,7 +538,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.text.primary,
   },
   saveButtonText: {
     ...createTextStyle(theme, 'button', theme.colors.surface),
@@ -597,24 +566,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   nextReminderTime: {
     ...createTextStyle(theme, 'bodySmall', theme.colors.text.secondary),
   },
-  testButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.layout.borderRadius.medium,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    minHeight: theme.layout.touchTarget.recommended,
-    gap: theme.spacing.sm,
-  },
-  testButtonDisabled: {
-    opacity: 0.5,
-  },
-  testButtonText: {
-    ...createTextStyle(theme, 'button', theme.colors.surface),
-    fontWeight: '600',
-  },
+
   webNotice: {
     flexDirection: 'row',
     alignItems: 'flex-start',
