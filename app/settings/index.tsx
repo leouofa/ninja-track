@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { exportUtils } from '../../utils/exportUtils';
 import { createTextStyle, useTheme } from '../../utils/theme';
 
 interface SettingsMenuItem {
@@ -9,54 +10,102 @@ interface SettingsMenuItem {
   title: string;
   description: string;
   icon: keyof typeof Ionicons.glyphMap;
-  route: string;
+  route?: string;
+  action?: () => void;
 }
-
-const SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
-  {
-    id: 'categories',
-    title: 'Categories',
-    description: 'Manage your tracking categories',
-    icon: 'folder-outline',
-    route: '/settings/categories',
-  },
-  {
-    id: 'tasks',
-    title: 'Tasks',
-    description: 'Manage your tasks within categories',
-    icon: 'list-outline',
-    route: '/settings/tasks',
-  },
-  {
-    id: 'reminders',
-    title: 'Reminders',
-    description: 'Set up task tracking reminders',
-    icon: 'notifications-outline',
-    route: '/settings/reminders',
-  },
-];
 
 export default function Settings() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const styles = createStyles(theme);
 
-  const renderMenuItem = (item: SettingsMenuItem) => (
-    <Link key={item.id} href={item.route as any} asChild>
-      <TouchableOpacity
-        style={styles.menuItem}
-        activeOpacity={0.98}
-      >
-        <View style={styles.menuItemIcon}>
-          <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
-        </View>
-        <View style={styles.menuItemContent}>
-          <Text style={styles.menuItemTitle}>{item.title}</Text>
-          <Text style={styles.menuItemDescription}>{item.description}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
-      </TouchableOpacity>
-    </Link>
-  );
+  const handleExport = async () => {
+    try {
+      await exportUtils.exportToCSV();
+      Alert.alert(
+        'Export Successful',
+        'Your task completion data has been exported successfully.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert(
+        'Export Failed',
+        'There was an error exporting your data. Please try again.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
+    {
+      id: 'categories',
+      title: 'Categories',
+      description: 'Manage your tracking categories',
+      icon: 'folder-outline',
+      route: '/settings/categories',
+    },
+    {
+      id: 'tasks',
+      title: 'Tasks',
+      description: 'Manage your tasks within categories',
+      icon: 'list-outline',
+      route: '/settings/tasks',
+    },
+    {
+      id: 'reminders',
+      title: 'Reminders',
+      description: 'Set up task tracking reminders',
+      icon: 'notifications-outline',
+      route: '/settings/reminders',
+    },
+    {
+      id: 'export',
+      title: 'Export Data',
+      description: 'Export your task completion data to CSV',
+      icon: 'download-outline',
+      action: handleExport,
+    },
+  ];
+
+  const renderMenuItem = (item: SettingsMenuItem) => {
+    if (item.route) {
+      return (
+        <Link key={item.id} href={item.route as any} asChild>
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.98}
+          >
+            <View style={styles.menuItemIcon}>
+              <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
+            </View>
+            <View style={styles.menuItemContent}>
+              <Text style={styles.menuItemTitle}>{item.title}</Text>
+              <Text style={styles.menuItemDescription}>{item.description}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
+          </TouchableOpacity>
+        </Link>
+      );
+    } else {
+      return (
+        <TouchableOpacity
+          key={item.id}
+          style={styles.menuItem}
+          activeOpacity={0.98}
+          onPress={item.action}
+        >
+          <View style={styles.menuItemIcon}>
+            <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
+          </View>
+          <View style={styles.menuItemContent}>
+            <Text style={styles.menuItemTitle}>{item.title}</Text>
+            <Text style={styles.menuItemDescription}>{item.description}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
+        </TouchableOpacity>
+      );
+    }
+  };
 
   const renderThemeToggle = () => (
     <View style={styles.menuItem}>
