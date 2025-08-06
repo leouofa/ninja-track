@@ -569,7 +569,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.text.primary,
   },
   saveButtonText: {
     ...createTextStyle(theme, 'button', theme.colors.surface),
@@ -601,7 +601,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.text.primary,
     borderRadius: theme.layout.borderRadius.medium,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,

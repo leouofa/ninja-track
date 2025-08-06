@@ -89,7 +89,7 @@ export const lightTheme: Theme = {
     secondary: '#64748b',    // Slate 500
     accent: '#2563eb',       // Blue 600
     background: '#ffffff',   // White
-    secondaryBackground: '#f8fafc', // Slate 50
+    secondaryBackground: '#e2e8f0', // Slate 200
     surface: '#ffffff',      // White (for cards, modals)
     border: '#e2e8f0',       // Slate 200
     text: {
