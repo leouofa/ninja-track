@@ -1,23 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { categoryUtils } from '../../utils/categoryStorage';
 import { createTextStyle, useTheme } from '../../utils/theme';
 import { Category } from '../../utils/types';
 
 const PREDEFINED_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57',
-  '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43',
-  '#FC427B', '#0ABDE3', '#C44569', '#F8B500', '#6C5CE7'
+  '#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6',
+  '#1ABC9C', '#E67E22', '#34495E', '#F1C40F', '#8E44AD',
+  '#E91E63', '#FF5722', '#607D8B', '#795548'
 ];
 
 export default function Categories() {
@@ -293,7 +293,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderColor: "transparent",
   },
   selectedColor: {
-    borderColor: theme.colors.accent,
+    borderColor: '#111111',
     borderWidth: 3,
   },
   addButton: {
