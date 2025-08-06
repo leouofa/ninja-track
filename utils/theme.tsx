@@ -223,27 +223,23 @@ export const darkTheme: Theme = {
 };
 
 // Theme context for React components
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext } from 'react';
+import { useColorScheme } from 'react-native';
 
 interface ThemeContextType {
   theme: Theme;
   isDarkMode: boolean;
-  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-  
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
   const theme = isDarkMode ? darkTheme : lightTheme;
   
   return (
-    <ThemeContext.Provider value={{ theme, isDarkMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, isDarkMode }}>
       {children}
     </ThemeContext.Provider>
   );
