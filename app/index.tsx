@@ -84,10 +84,6 @@ export default function Home() {
 
   const renderCategorySection = (category: Category) => {
     const categoryTasks = getTasksForCategory(category.id);
-    
-    if (categoryTasks.length === 0) {
-      return null;
-    }
 
     return (
       <View key={category.id} style={styles.categorySection}>
@@ -97,7 +93,17 @@ export default function Home() {
         </View>
         
         <View style={styles.tasksContainer}>
-          {categoryTasks.map(renderTaskItem)}
+          {categoryTasks.length === 0 ? (
+            <View style={styles.emptyTasksState}>
+              <Ionicons name="add-circle-outline" size={32} color={theme.colors.text.muted} />
+              <Text style={styles.emptyTasksTitle}>No tasks yet</Text>
+              <Text style={styles.emptyTasksDescription}>
+                Go to Settings → Tasks to add tasks for this category.
+              </Text>
+            </View>
+          ) : (
+            categoryTasks.map(renderTaskItem)
+          )}
         </View>
       </View>
     );
@@ -372,5 +378,27 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     marginTop: theme.spacing.xs,
+  },
+  emptyTasksState: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.layout.borderRadius.medium,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderStyle: 'dashed',
+  },
+  emptyTasksTitle: {
+    ...createTextStyle(theme, 'bodyLarge', theme.colors.text.secondary),
+    fontWeight: '500',
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+  },
+  emptyTasksDescription: {
+    ...createTextStyle(theme, 'bodySmall', theme.colors.text.muted),
+    textAlign: "center",
+    lineHeight: 18,
   },
 });

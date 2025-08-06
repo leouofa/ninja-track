@@ -61,7 +61,7 @@ export default function Settings() {
     {
       id: 'export',
       title: 'Export Data',
-      description: 'Export your task completion data to CSV',
+      description: 'Export your completion data to CSV',
       icon: 'download-outline',
       action: handleExport,
     },
@@ -113,7 +113,7 @@ export default function Settings() {
     <View style={styles.container}>
       <ScrollView style={styles.content}>
         <Text style={styles.subtitle}>
-          Configure your Ninja Track preferences and account settings.
+          Configure your preferences and account settings.
         </Text>
 
         <View style={styles.menuSection}>
