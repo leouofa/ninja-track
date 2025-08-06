@@ -3,14 +3,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { notificationUtils } from '../../utils/notificationUtils';
 import { reminderUtils } from '../../utils/reminderStorage';

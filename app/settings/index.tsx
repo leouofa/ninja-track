@@ -76,7 +76,7 @@ export default function Settings() {
             activeOpacity={0.98}
           >
             <View style={styles.menuItemIcon}>
-              <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
+              <Ionicons name={item.icon} size={24} color={theme.colors.text.secondary} />
             </View>
             <View style={styles.menuItemContent}>
               <Text style={styles.menuItemTitle}>{item.title}</Text>
@@ -95,7 +95,7 @@ export default function Settings() {
           onPress={item.action}
         >
           <View style={styles.menuItemIcon}>
-            <Ionicons name={item.icon} size={24} color={theme.colors.accent} />
+            <Ionicons name={item.icon} size={24} color={theme.colors.text.secondary} />
           </View>
           <View style={styles.menuItemContent}>
             <Text style={styles.menuItemTitle}>{item.title}</Text>
@@ -113,7 +113,7 @@ export default function Settings() {
         <Ionicons 
           name={isDarkMode ? "sunny" : "moon"} 
           size={24} 
-          color={theme.colors.accent} 
+          color={theme.colors.text.secondary} 
         />
       </View>
       <View style={styles.menuItemContent}>
