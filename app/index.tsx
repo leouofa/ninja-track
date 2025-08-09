@@ -185,15 +185,6 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.categoriesSection}>
-            <View style={styles.sectionHeaderContainer}>
-              <View style={styles.horizontalLine} />
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Tracked Categories</Text>
-                <Text style={styles.categoryCount}>({categories.length})</Text>
-              </View>
-              <View style={styles.horizontalLine} />
-            </View>
-            
             {categories.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="folder-outline" size={48} color={theme.colors.text.muted} />
