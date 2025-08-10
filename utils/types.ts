@@ -10,6 +10,7 @@ export interface Task {
   id: string;
   name: string;
   categoryId: string;
+  order: number;
   createdAt: Date;
 }
 

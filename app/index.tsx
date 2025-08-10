@@ -53,7 +53,9 @@ export default function Home() {
   const spacing = createSpacing(theme);
 
   const getTasksForCategory = (categoryId: string): Task[] => {
-    return tasks.filter(task => task.categoryId === categoryId);
+    return tasks
+      .filter(task => task.categoryId === categoryId)
+      .sort((a, b) => a.order - b.order);
   };
 
   const isTaskCompleted = (taskId: string): boolean => {

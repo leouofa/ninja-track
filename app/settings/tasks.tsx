@@ -3,7 +3,6 @@ import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
-  FlatList,
   Modal,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { categoryUtils } from '../../utils/categoryStorage';
 import { taskUtils } from '../../utils/taskStorage';
 import { createTextStyle, useTheme } from '../../utils/theme';
@@ -175,21 +175,20 @@ export default function Tasks() {
     );
   };
 
-  const renderTaskItem = ({ item }: { item: Task }) => {
-    const category = getCategoryById(item.categoryId);
+  const renderTaskItem = ({ item, drag, isActive }: RenderItemParams<Task>) => {
     return (
-      <View style={styles.taskItem}>
+      <View style={[styles.taskItem, isActive && { opacity: 0.9 }]}>
+        <TouchableOpacity
+          style={styles.dragHandle}
+          onLongPress={drag}
+          delayLongPress={120}
+          activeOpacity={0.6}
+        >
+          <Ionicons name="reorder-three" size={20} color={theme.colors.text.secondary} />
+        </TouchableOpacity>
         <View style={styles.taskInfo}>
           <View style={styles.taskHeader}>
             <Text style={styles.taskName}>{item.name}</Text>
-            <View style={styles.taskCategory}>
-              {category && (
-                <>
-                  <View style={[styles.categoryColor, { backgroundColor: category.color }]} />
-                  <Text style={styles.taskCategoryText}>{category.name}</Text>
-                </>
-              )}
-            </View>
           </View>
         </View>
         <View style={styles.taskActions}>
@@ -273,12 +272,34 @@ export default function Tasks() {
           {tasks.length === 0 ? (
             <Text style={styles.emptyText}>No tasks yet. Add your first one above!</Text>
           ) : (
-            <FlatList
-              data={tasks}
-              renderItem={renderTaskItem}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-            />
+            <View>
+              {categories.map((category) => {
+                const tasksForCategory = tasks
+                  .filter((t) => t.categoryId === category.id)
+                  .sort((a, b) => a.order - b.order);
+                if (tasksForCategory.length === 0) return null;
+                return (
+                  <View key={category.id} style={{ marginBottom: styles.formLabel.marginBottom }}>
+                    <View style={styles.categoryHeaderRow}>
+                      <View style={[styles.categoryColor, { backgroundColor: category.color }]} />
+                      <Text style={styles.categoryHeaderText}>{category.name}</Text>
+                    </View>
+                    <DraggableFlatList
+                      data={tasksForCategory}
+                      keyExtractor={(item) => item.id}
+                      renderItem={renderTaskItem}
+                      onDragEnd={async ({ data }) => {
+                        // Persist re-ordered tasks for this category
+                        const updatedAll = await taskUtils.reorderTasksByIds(category.id, data.map((t) => t.id));
+                        setTasks(updatedAll);
+                      }}
+                      activationDistance={12}
+                      scrollEnabled={false}
+                    />
+                  </View>
+                );
+              })}
+            </View>
           )}
         </View>
       </ScrollView>
@@ -476,12 +497,13 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
   },
   taskHeader: {
-    flexDirection: "column",
+    flexDirection: "row",
+    alignItems: "center",
   },
   taskName: {
     ...createTextStyle(theme, 'bodyBase'),
     fontWeight: "600",
-    marginBottom: theme.spacing.xs,
+    marginBottom: 0,
   },
   taskCategory: {
     flexDirection: "row",
@@ -492,13 +514,31 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginLeft: theme.spacing.xs,
   },
   categoryColor: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginRight: 10,
+  },
+  categoryHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  categoryHeaderText: {
+    ...createTextStyle(theme, 'bodyLarge'),
+    fontWeight: '600',
+    lineHeight: 20,
   },
   taskActions: {
     flexDirection: "row",
     gap: theme.spacing.sm,
+  },
+  dragHandle: {
+    paddingVertical: theme.spacing.sm,
+    paddingRight: theme.spacing.sm,
+    paddingLeft: 0,
+    marginRight: theme.spacing.sm,
+    marginLeft: -2,
   },
   actionButton: {
     padding: theme.spacing.sm,
