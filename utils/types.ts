@@ -2,6 +2,7 @@ export interface Category {
   id: string;
   name: string;
   color: string;
+  order: number;
   createdAt: Date;
 }
 
@@ -9,6 +10,7 @@ export interface Task {
   id: string;
   name: string;
   categoryId: string;
+  order: number;
   createdAt: Date;
 }
 

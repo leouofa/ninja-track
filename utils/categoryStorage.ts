@@ -25,17 +25,32 @@ export const categoryUtils = {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   },
 
-  // Load all categories
+  // Load all categories (sorted by order). Performs a one-time migration if order is missing.
   loadCategories: async (): Promise<Category[]> => {
     try {
       const categoriesJson = await AsyncStorage.getItem(CATEGORIES_STORAGE_KEY);
       if (categoriesJson) {
-        const categories = JSON.parse(categoriesJson);
-        // Convert createdAt strings back to Date objects
-        return categories.map((cat: any) => ({
+        const parsed: any[] = JSON.parse(categoriesJson);
+        let categories: Category[] = parsed.map((cat: any) => ({
           ...cat,
+          // If order is missing, will be migrated below. Use -1 sentinel pre-migration.
+          order: typeof cat.order === 'number' ? cat.order : -1,
           createdAt: new Date(cat.createdAt)
         }));
+
+        const needsOrderMigration = categories.some((cat) => cat.order < 0);
+        if (needsOrderMigration) {
+          // Assign order based on createdAt (oldest first)
+          const migrated = [...categories]
+            .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+            .map((cat, index) => ({ ...cat, order: index }));
+          categories = migrated;
+          // Persist migrated order
+          await categoryUtils.saveCategories(categories);
+        }
+
+        // Always return sorted by order
+        return [...categories].sort((a, b) => a.order - b.order);
       }
       return [];
     } catch (error) {
@@ -47,7 +62,11 @@ export const categoryUtils = {
   // Save all categories
   saveCategories: async (categories: Category[]): Promise<void> => {
     try {
-      const categoriesJson = JSON.stringify(categories);
+      // Normalize order indexes to be sequential starting at 0 before save
+      const normalized = [...categories]
+        .sort((a, b) => a.order - b.order)
+        .map((cat, index) => ({ ...cat, order: index }));
+      const categoriesJson = JSON.stringify(normalized);
       await AsyncStorage.setItem(CATEGORIES_STORAGE_KEY, categoriesJson);
     } catch (error) {
       console.error('Error saving categories:', error);
@@ -74,6 +93,7 @@ export const categoryUtils = {
       id: categoryUtils.generateId(),
       name: formattedName,
       color,
+      order: categories.length,
       createdAt: new Date()
     };
 
@@ -124,5 +144,48 @@ export const categoryUtils = {
 
     await categoryUtils.saveCategories(filteredCategories);
     return true;
+  },
+
+  // Reorder categories by an array of category IDs. IDs not present will be appended in original relative order.
+  reorderCategoriesByIds: async (orderedIds: string[]): Promise<Category[]> => {
+    const categories = await categoryUtils.loadCategories();
+    const idToCategory = new Map(categories.map(c => [c.id, c] as const));
+    const seen = new Set<string>();
+
+    const ordered: Category[] = [];
+    for (const id of orderedIds) {
+      const cat = idToCategory.get(id);
+      if (cat && !seen.has(id)) {
+        ordered.push(cat);
+        seen.add(id);
+      }
+    }
+    // Append any categories not included in orderedIds, preserving their current order
+    for (const cat of categories) {
+      if (!seen.has(cat.id)) {
+        ordered.push(cat);
+      }
+    }
+
+    // Assign sequential order and save
+    const normalized = ordered.map((cat, index) => ({ ...cat, order: index }));
+    await categoryUtils.saveCategories(normalized);
+    return normalized;
+  },
+
+  // Move a category by delta (-1 for up, +1 for down)
+  moveCategory: async (id: string, delta: number): Promise<Category[]> => {
+    const categories = await categoryUtils.loadCategories();
+    const sorted = [...categories].sort((a, b) => a.order - b.order);
+    const currentIndex = sorted.findIndex(c => c.id === id);
+    if (currentIndex === -1) return sorted;
+    const targetIndex = currentIndex + delta;
+    if (targetIndex < 0 || targetIndex >= sorted.length) return sorted;
+    const temp = sorted[currentIndex];
+    sorted[currentIndex] = sorted[targetIndex];
+    sorted[targetIndex] = temp;
+    const normalized = sorted.map((cat, index) => ({ ...cat, order: index }));
+    await categoryUtils.saveCategories(normalized);
+    return normalized;
   }
 };

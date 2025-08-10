@@ -26,17 +26,41 @@ export const taskUtils = {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   },
 
-  // Load all tasks
+  // Load all tasks, migrating and normalizing per-category order
   loadTasks: async (): Promise<Task[]> => {
     try {
       const tasksJson = await AsyncStorage.getItem(TASKS_STORAGE_KEY);
       if (tasksJson) {
-        const tasks = JSON.parse(tasksJson);
-        // Convert createdAt strings back to Date objects
-        return tasks.map((task: any) => ({
+        const parsed: any[] = JSON.parse(tasksJson);
+        let tasks: Task[] = parsed.map((task: any) => ({
           ...task,
+          order: typeof task.order === 'number' ? task.order : -1,
           createdAt: new Date(task.createdAt)
         }));
+
+        // Migration: assign order within each category if missing
+        let needsMigration = tasks.some(t => t.order < 0);
+        if (needsMigration) {
+          const byCategory = new Map<string, Task[]>();
+          for (const t of tasks) {
+            const arr = byCategory.get(t.categoryId) ?? [];
+            arr.push(t);
+            byCategory.set(t.categoryId, arr);
+          }
+          const migrated: Task[] = [];
+          for (const [_, arr] of byCategory) {
+            const sortedByCreated = arr
+              .slice()
+              .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+              .map((t, index) => ({ ...t, order: index }));
+            migrated.push(...sortedByCreated);
+          }
+          tasks = migrated;
+          await taskUtils.saveTasks(tasks);
+        }
+        // Ensure normalized order before returning
+        tasks = await taskUtils.normalizeOrders(tasks);
+        return tasks;
       }
       return [];
     } catch (error) {
@@ -45,20 +69,42 @@ export const taskUtils = {
     }
   },
 
-  // Load tasks for a specific category
+  // Load tasks for a specific category (sorted by order)
   loadTasksByCategory: async (categoryId: string): Promise<Task[]> => {
     const allTasks = await taskUtils.loadTasks();
-    return allTasks.filter(task => task.categoryId === categoryId);
+    return allTasks
+      .filter(task => task.categoryId === categoryId)
+      .sort((a, b) => a.order - b.order);
   },
 
-  // Save all tasks
+  // Save all tasks (after normalizing per-category order)
   saveTasks: async (tasks: Task[]): Promise<void> => {
     try {
-      const tasksJson = JSON.stringify(tasks);
+      const normalized = await taskUtils.normalizeOrders(tasks);
+      const tasksJson = JSON.stringify(normalized);
       await AsyncStorage.setItem(TASKS_STORAGE_KEY, tasksJson);
     } catch (error) {
       console.error('Error saving tasks:', error);
     }
+  },
+
+  // Normalize order per category; helper used by save and load
+  normalizeOrders: async (tasks: Task[]): Promise<Task[]> => {
+    const byCategory = new Map<string, Task[]>();
+    for (const t of tasks) {
+      const arr = byCategory.get(t.categoryId) ?? [];
+      arr.push(t);
+      byCategory.set(t.categoryId, arr);
+    }
+    const normalized: Task[] = [];
+    for (const [_, arr] of byCategory) {
+      const sorted = arr
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((t, index) => ({ ...t, order: index }));
+      normalized.push(...sorted);
+    }
+    return normalized;
   },
 
   // Add a new task
@@ -77,10 +123,12 @@ export const taskUtils = {
       return null;
     }
 
+    const tasksInCategory = tasks.filter(t => t.categoryId === categoryId);
     const newTask: Task = {
       id: taskUtils.generateId(),
       name: formattedName,
       categoryId,
+      order: tasksInCategory.length,
       createdAt: new Date()
     };
 
@@ -114,11 +162,23 @@ export const taskUtils = {
       return null;
     }
 
+    const originalCategoryId = tasks[taskIndex].categoryId;
     tasks[taskIndex] = {
       ...tasks[taskIndex],
       name: formattedName,
       categoryId
     };
+
+    // If category changed, re-normalize orders for both categories
+    if (originalCategoryId !== categoryId) {
+      // When moving to a new category, place at end
+      const maxOrderInTarget = Math.max(
+        -1,
+        ...tasks.filter(t => t.categoryId === categoryId).map(t => t.order)
+      );
+      tasks[taskIndex].order = maxOrderInTarget + 1;
+      // Normalize will fix gaps in original category on save
+    }
 
     await taskUtils.saveTasks(tasks);
     return tasks[taskIndex];
@@ -151,5 +211,53 @@ export const taskUtils = {
     
     const filteredTasks = tasks.filter(task => task.categoryId !== categoryId);
     await taskUtils.saveTasks(filteredTasks);
+  },
+
+  // Reorder tasks within a category by ordered task IDs
+  reorderTasksByIds: async (categoryId: string, orderedIds: string[]): Promise<Task[]> => {
+    const tasks = await taskUtils.loadTasks();
+    const inCategory = tasks.filter(t => t.categoryId === categoryId);
+    const idToTask = new Map(inCategory.map(t => [t.id, t] as const));
+    const seen = new Set<string>();
+    const ordered: Task[] = [];
+    for (const id of orderedIds) {
+      const task = idToTask.get(id);
+      if (task && !seen.has(id)) {
+        ordered.push(task);
+        seen.add(id);
+      }
+    }
+    // Append any remaining in-category tasks not included
+    for (const task of inCategory) {
+      if (!seen.has(task.id)) ordered.push(task);
+    }
+    // Set orders and merge back with out-of-category tasks
+    const updatedInCategory = ordered.map((t, index) => ({ ...t, order: index }));
+    const outOfCategory = tasks.filter(t => t.categoryId !== categoryId);
+    const merged = [...outOfCategory, ...updatedInCategory];
+    await taskUtils.saveTasks(merged);
+    return merged;
+  },
+
+  // Move a task up/down within its category
+  moveTaskWithinCategory: async (id: string, delta: number): Promise<Task[]> => {
+    const tasks = await taskUtils.loadTasks();
+    const index = tasks.findIndex(t => t.id === id);
+    if (index === -1) return tasks;
+    const categoryId = tasks[index].categoryId;
+    const inCategory = tasks
+      .filter(t => t.categoryId === categoryId)
+      .sort((a, b) => a.order - b.order);
+    const currentIndex = inCategory.findIndex(t => t.id === id);
+    const targetIndex = currentIndex + delta;
+    if (targetIndex < 0 || targetIndex >= inCategory.length) return tasks;
+    const tmp = inCategory[currentIndex];
+    inCategory[currentIndex] = inCategory[targetIndex];
+    inCategory[targetIndex] = tmp;
+    const updatedInCategory = inCategory.map((t, i) => ({ ...t, order: i }));
+    const outOfCategory = tasks.filter(t => t.categoryId !== categoryId);
+    const merged = [...outOfCategory, ...updatedInCategory];
+    await taskUtils.saveTasks(merged);
+    return merged;
   }
 };

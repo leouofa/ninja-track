@@ -53,7 +53,9 @@ export default function Home() {
   const spacing = createSpacing(theme);
 
   const getTasksForCategory = (categoryId: string): Task[] => {
-    return tasks.filter(task => task.categoryId === categoryId);
+    return tasks
+      .filter(task => task.categoryId === categoryId)
+      .sort((a, b) => a.order - b.order);
   };
 
   const isTaskCompleted = (taskId: string): boolean => {
@@ -113,8 +115,6 @@ export default function Home() {
         <View style={styles.tasksContainer}>
           {categoryTasks.length === 0 ? (
             <View style={styles.emptyTasksState}>
-              <Ionicons name="add-circle-outline" size={32} color={theme.colors.text.muted} />
-              <Text style={styles.emptyTasksTitle}>No tasks yet</Text>
               <Text style={styles.emptyTasksDescription}>
                 Go to Settings → Tasks to add tasks for this category.
               </Text>
