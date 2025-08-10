@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Alert,
     ScrollView,
@@ -28,6 +28,8 @@ export default function Categories() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const scrollRef = useRef<ScrollView | null>(null);
   
   const styles = createStyles(theme);
 
@@ -126,8 +128,7 @@ export default function Categories() {
     <View style={[styles.categoryItem, isActive && { opacity: 0.9 }] }>
       <TouchableOpacity
         style={styles.dragHandle}
-        onLongPress={drag}
-        delayLongPress={120}
+        onPressIn={drag}
         activeOpacity={0.6}
       >
         <Ionicons name="reorder-three" size={20} color={theme.colors.text.secondary} />
@@ -155,7 +156,7 @@ export default function Categories() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} scrollEnabled={!isDragging} ref={scrollRef}>
         <Text style={styles.sectionDescription}>
           Manage your tracking categories. Names cannot contain spaces (replaced with dashes) or hashtags.
         </Text>
@@ -194,11 +195,13 @@ export default function Categories() {
               data={categories}
               keyExtractor={(item) => item.id}
               renderItem={renderCategoryItem}
+              onDragBegin={() => setIsDragging(true)}
               onDragEnd={async ({ data }) => {
                 setCategories(data);
                 await categoryUtils.reorderCategoriesByIds(data.map(c => c.id));
+                setIsDragging(false);
               }}
-              activationDistance={12}
+              activationDistance={20}
               containerStyle={styles.draggableListContainer}
               scrollEnabled={false}
             />
@@ -357,8 +360,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     ...createTextStyle(theme, 'bodyBase'),
   },
   dragHandle: {
-    padding: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+    paddingRight: theme.spacing.sm,
+    paddingLeft: 0,
     marginRight: theme.spacing.sm,
+    marginLeft: -2,
   },
   categoryActions: {
     flexDirection: "row",
