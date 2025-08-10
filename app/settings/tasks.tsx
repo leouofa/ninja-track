@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -28,6 +28,8 @@ export default function Tasks() {
   const [editCategoryId, setEditCategoryId] = useState('');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showEditCategoryPicker, setShowEditCategoryPicker] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const scrollRef = useRef<ScrollView | null>(null);
   
   const styles = createStyles(theme);
 
@@ -180,7 +182,7 @@ export default function Tasks() {
       <View style={[styles.taskItem, isActive && { opacity: 0.9 }]}>
         <TouchableOpacity
           style={styles.dragHandle}
-          onLongPress={drag}
+          onPressIn={drag}
           delayLongPress={120}
           activeOpacity={0.6}
         >
@@ -237,7 +239,7 @@ export default function Tasks() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} scrollEnabled={!isDragging} ref={scrollRef}>
         <Text style={styles.sectionDescription}>
           Manage your tasks. Names cannot contain spaces (replaced with dashes) or hashtags.
         </Text>
@@ -286,14 +288,16 @@ export default function Tasks() {
                     </View>
                     <DraggableFlatList
                       data={tasksForCategory}
-                      keyExtractor={(item) => item.id}
+                      keyExtractor={(item) => `${category.id}-${item.id}`}
                       renderItem={renderTaskItem}
+                      onDragBegin={() => setIsDragging(true)}
                       onDragEnd={async ({ data }) => {
                         // Persist re-ordered tasks for this category
                         const updatedAll = await taskUtils.reorderTasksByIds(category.id, data.map((t) => t.id));
                         setTasks(updatedAll);
+                        setIsDragging(false);
                       }}
-                      activationDistance={12}
+                      activationDistance={20}
                       scrollEnabled={false}
                     />
                   </View>
