@@ -2,14 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { categoryUtils } from '../../utils/categoryStorage';
 import { taskUtils } from '../../utils/taskStorage';
@@ -283,13 +284,18 @@ export default function Tasks() {
       </ScrollView>
 
       {/* Category Picker Modal for New Task */}
-      {showCategoryPicker && (
+      <Modal
+        visible={showCategoryPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCategoryPicker(false)}
+      >
         <View style={styles.modal}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Category</Text>
             {renderCategoryPicker(newTaskCategoryId, setNewTaskCategoryId, () => setShowCategoryPicker(false))}
             <TouchableOpacity
-              style={[styles.modalButton, styles.cancelButton]}
+              style={[styles.modalButton, styles.cancelButton, styles.singleActionButton]}
               onPress={() => setShowCategoryPicker(false)}
               activeOpacity={0.98}
             >
@@ -297,10 +303,15 @@ export default function Tasks() {
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      </Modal>
 
       {/* Edit Task Modal */}
-      {editingTask && (
+      <Modal
+        visible={!!editingTask && !showEditCategoryPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditingTask(null)}
+      >
         <View style={styles.modal}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Task</Text>
@@ -334,16 +345,21 @@ export default function Tasks() {
             </View>
           </View>
         </View>
-      )}
+      </Modal>
 
       {/* Category Picker Modal for Edit Task */}
-      {showEditCategoryPicker && (
+      <Modal
+        visible={showEditCategoryPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowEditCategoryPicker(false)}
+      >
         <View style={styles.modal}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Category</Text>
             {renderCategoryPicker(editCategoryId, setEditCategoryId, () => setShowEditCategoryPicker(false))}
             <TouchableOpacity
-              style={[styles.modalButton, styles.cancelButton]}
+              style={[styles.modalButton, styles.cancelButton, styles.singleActionButton]}
               onPress={() => setShowEditCategoryPicker(false)}
               activeOpacity={0.98}
             >
@@ -351,7 +367,7 @@ export default function Tasks() {
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 }
@@ -519,6 +535,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
+    zIndex: 9999,
+    // elevation is for Android; harmless on iOS
+    elevation: 9999,
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
@@ -528,6 +547,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     width: "90%",
     maxWidth: 400,
     ...theme.shadows.subtle,
+    overflow: 'visible',
   },
   modalTitle: {
     ...createTextStyle(theme, 'h4'),
@@ -546,6 +566,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minHeight: theme.layout.touchTarget.minimum,
+  },
+  singleActionButton: {
+    flex: undefined,
+    alignSelf: 'stretch',
   },
   cancelButton: {
     backgroundColor: theme.colors.secondaryBackground,
