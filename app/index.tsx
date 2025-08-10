@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { categoryUtils } from '../utils/categoryStorage';
 import { taskCompletionUtils } from '../utils/taskCompletionStorage';
@@ -13,7 +13,8 @@ export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [taskCompletions, setTaskCompletions] = useState<TaskCompletion[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [calendarDays, setCalendarDays] = useState<Date[]>([]);
 
   const loadData = async () => {
     const [loadedCategories, loadedTasks, loadedCompletions] = await Promise.all([
@@ -25,6 +26,21 @@ export default function Home() {
     setTasks(loadedTasks);
     setTaskCompletions(loadedCompletions);
   };
+
+  // Initialize dates after component mounts to prevent hydration mismatch
+  useEffect(() => {
+    const today = new Date();
+    setSelectedDate(today);
+    
+    // Generate calendar days
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      days.push(date);
+    }
+    setCalendarDays(days);
+  }, []);
 
   // Reload data when the screen is focused (user comes back from settings)
   useFocusEffect(
@@ -41,6 +57,7 @@ export default function Home() {
   };
 
   const isTaskCompleted = (taskId: string): boolean => {
+    if (!selectedDate) return false;
     const dateString = selectedDate.toISOString().split('T')[0];
     return taskCompletions.some(
       completion => completion.taskId === taskId && completion.date === dateString
@@ -48,6 +65,7 @@ export default function Home() {
   };
 
   const handleTaskToggle = async (task: Task) => {
+    if (!selectedDate) return;
     const newCompletionState = await taskCompletionUtils.toggleTaskCompletion(task.id, selectedDate);
     // Reload completions to update the UI
     const updatedCompletions = await taskCompletionUtils.loadTaskCompletions();
@@ -109,27 +127,16 @@ export default function Home() {
     );
   };
 
-  const generateCalendarDays = () => {
-    const days = [];
-    const today = new Date();
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      days.push(date);
-    }
-    
-    return days;
-  };
-
   const getDayLabel = (date: Date) => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return days[date.getDay()];
   };
 
   const renderCalendarDay = (date: Date) => {
+    if (!selectedDate) return null;
     const isSelected = date.toDateString() === selectedDate.toDateString();
-    const isToday = date.toDateString() === new Date().toDateString();
+    const today = new Date();
+    const isToday = date.toDateString() === today.toDateString();
     
     return (
       <View key={date.toDateString()} style={styles.calendarDayContainer}>
@@ -156,7 +163,13 @@ export default function Home() {
   };
 
   const CalendarComponent = () => {
-    const calendarDays = generateCalendarDays();
+    if (!selectedDate || calendarDays.length === 0) {
+      return (
+        <View style={styles.calendarContainer}>
+          <View style={styles.calendarDays} />
+        </View>
+      );
+    }
     
     return (
       <View style={styles.calendarContainer}>
