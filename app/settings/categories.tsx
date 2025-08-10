@@ -1,15 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { categoryUtils } from '../../utils/categoryStorage';
 import { createTextStyle, useTheme } from '../../utils/theme';
 import { Category } from '../../utils/types';
@@ -122,8 +122,16 @@ export default function Categories() {
     </View>
   );
 
-  const renderCategoryItem = ({ item }: { item: Category }) => (
-    <View style={styles.categoryItem}>
+  const renderCategoryItem = ({ item, drag, isActive }: RenderItemParams<Category>) => (
+    <View style={[styles.categoryItem, isActive && { opacity: 0.9 }] }>
+      <TouchableOpacity
+        style={styles.dragHandle}
+        onLongPress={drag}
+        delayLongPress={120}
+        activeOpacity={0.6}
+      >
+        <Ionicons name="reorder-three" size={20} color={theme.colors.text.secondary} />
+      </TouchableOpacity>
       <View style={[styles.categoryColor, { backgroundColor: item.color }]} />
       <Text style={styles.categoryName}>{item.name}</Text>
       <View style={styles.categoryActions}>
@@ -132,14 +140,14 @@ export default function Categories() {
           onPress={() => handleEditCategory(item)}
           activeOpacity={0.98}
         >
-                          <Ionicons name="pencil" size={16} color={theme.colors.text.secondary} />
+          <Ionicons name="pencil" size={16} color={theme.colors.text.secondary} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => handleDeleteCategory(item)}
           activeOpacity={0.98}
         >
-                          <Ionicons name="trash" size={16} color={theme.colors.text.secondary} />
+          <Ionicons name="trash" size={16} color={theme.colors.text.secondary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -182,10 +190,16 @@ export default function Categories() {
           {categories.length === 0 ? (
             <Text style={styles.emptyText}>No categories yet. Add your first one above!</Text>
           ) : (
-            <FlatList
+            <DraggableFlatList
               data={categories}
-              renderItem={renderCategoryItem}
               keyExtractor={(item) => item.id}
+              renderItem={renderCategoryItem}
+              onDragEnd={async ({ data }) => {
+                setCategories(data);
+                await categoryUtils.reorderCategoriesByIds(data.map(c => c.id));
+              }}
+              activationDistance={12}
+              containerStyle={styles.draggableListContainer}
               scrollEnabled={false}
             />
           )}
@@ -341,6 +355,10 @@ const createStyles = (theme: any) => StyleSheet.create({
   categoryName: {
     flex: 1,
     ...createTextStyle(theme, 'bodyBase'),
+  },
+  dragHandle: {
+    padding: theme.spacing.sm,
+    marginRight: theme.spacing.sm,
   },
   categoryActions: {
     flexDirection: "row",
