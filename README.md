@@ -1,50 +1,102 @@
-# Welcome to Ninja Tracker
+# Ninja Track
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Build better habits without the overwhelm.**
 
-## Get started
+Most habit trackers want you to log duration, intensity, and targets. Ninja Track
+doesn't. You name the things that matter, tap them when you do them, and watch
+the momentum build.
 
-1. Install dependencies
+- **Music** → Piano
+- **Health** → Cooking
+- **Fitness** → Running
 
-   ```bash
-   npm install
-   ```
+That's the whole model.
 
-2. Start the app
+## Features
 
-   ```bash
-   npx expo start
-   ```
+- **Categories** — organize your life into areas (Music, Health, Fitness, Learning…)
+- **Tasks** — simple named actions, no durations or targets to agonize over
+- **One-tap completion** — mark it done when you do it
+- **Progress reports** — stacked bar charts grouped by day, week, or month, with
+  completion rates and streaks across every life area
+- **Daily reminders** — a single scheduled local notification at the time you pick
+- **CSV export** — share your full history as `ninja-track-data-<timestamp>.csv`
+- **Light & dark** — follows your system appearance
+- **Cross-platform** — iOS, Android, and web from one Expo codebase
 
-In the output, you'll find options to open the app in a
+## Your data stays on your device
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+This is the part that matters most, so it's worth being specific:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **No account, no server, no sync.** Ninja Track has no backend. There is nowhere
+  for your data to go.
+- **No network requests.** The app code makes zero outbound requests — no
+  `fetch`, no analytics, no crash reporting, no telemetry. (The Android manifest
+  does declare a default `INTERNET` permission, inherited from `expo-file-system`
+  for the CSV export. Nothing in the app ever uses it.)
+- **Everything is local.** Categories, tasks, completions, and reminder settings
+  live in on-device `AsyncStorage` under four `@ninja_track_*` keys.
+- **Reminders are scheduled locally** on the device, not pushed through a server.
+  No push tokens, no notification relay.
+- **You can leave anytime.** Uninstalling removes everything, and CSV export means
+  you always have a copy.
 
-## Get a fresh project
+## Getting started
 
-When you're ready, run:
+Requires Node 18+ and the Expo CLI.
 
 ```bash
-npm run reset-project
+git clone https://github.com/ninja-in-brazil/ninja-track.git
+cd ninja-track
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Then press `i` for the iOS simulator, `a` for Android, `w` for web, or scan the
+QR code with Expo Go.
 
-## Learn more
+To run against a native development build instead:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm run ios
+npm run web
+npm run lint
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Building
 
-## Join the community
+The project uses [Expo prebuild](https://docs.expo.dev/workflow/prebuild/), so
+the `ios/` and `android/` directories are **not** committed — they're generated
+from `app.json` at build time. EAS build profiles live in `eas.json`:
 
-Join our community of developers creating universal apps.
+```bash
+eas build -p ios --profile preview      # internal distribution
+eas build -p ios --profile production
+eas build -p android --profile production
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Contributors won't have native projects checked in; run `npx expo prebuild` first
+if you need to work on native code.
+
+## Project structure
+
+```
+app/                    # expo-router file-based routes
+  index.tsx             # home — task list & completion
+  reports.tsx           # progress charts
+  settings/             # categories, tasks, reminders
+components/             # StackedBarChart, TimeGroupingToggle
+utils/                  # AsyncStorage adapters, reports, export, notifications
+assets/                 # icons and splash
+```
+
+Routing is file-based via [Expo Router](https://docs.expo.dev/router/introduction/),
+so a file in `app/` *is* a route.
+
+## Contributing
+
+Issues and bug reports are welcome — please [open an issue](https://github.com/ninja-in-brazil/ninja-track/issues).
+
+## License
+
+[MIT](LICENSE) © 2025 Leonid Medovyy
