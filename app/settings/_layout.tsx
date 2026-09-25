@@ -10,8 +10,6 @@ export default function SettingsLayout() {
         headerShown: true,
         headerStyle: {
           backgroundColor: theme.colors.surface,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.colors.border,
         },
         headerTintColor: theme.colors.text.primary,
         headerTitleStyle: {
@@ -19,7 +17,7 @@ export default function SettingsLayout() {
           fontWeight: 'bold',
           color: theme.colors.text.primary,
         },
-        headerBackTitleVisible: true,
+        headerBackButtonDisplayMode: 'default',
         headerBackTitle: 'Settings',
         headerShadowVisible: false,
       }}

@@ -47,7 +47,6 @@ export const taskCompletionUtils = {
 
   // Check if a task is completed on a specific date
   isTaskCompletedOnDate: async (taskId: string, date: Date): Promise<boolean> => {
-    const dateString = date.toISOString().split('T')[0];
     const completions = await taskCompletionUtils.getCompletionsForDate(date);
     return completions.some(completion => completion.taskId === taskId);
   },

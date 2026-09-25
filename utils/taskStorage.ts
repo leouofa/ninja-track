@@ -48,7 +48,7 @@ export const taskUtils = {
             byCategory.set(t.categoryId, arr);
           }
           const migrated: Task[] = [];
-          for (const [_, arr] of byCategory) {
+          for (const arr of byCategory.values()) {
             const sortedByCreated = arr
               .slice()
               .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
@@ -97,7 +97,7 @@ export const taskUtils = {
       byCategory.set(t.categoryId, arr);
     }
     const normalized: Task[] = [];
-    for (const [_, arr] of byCategory) {
+    for (const arr of byCategory.values()) {
       const sorted = arr
         .slice()
         .sort((a, b) => a.order - b.order)

@@ -99,7 +99,6 @@ export const reportsUtils = {
 
     // Create a map of tasks by ID for quick lookup
     const taskMap = new Map(tasks.map(task => [task.id, task]));
-    const categoryMap = new Map(categories.map(cat => [cat.id, cat]));
 
     // Group completions by period and category
     const groupedData = new Map<string, Map<string, number>>();

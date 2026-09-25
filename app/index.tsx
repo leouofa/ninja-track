@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { categoryUtils } from '../utils/categoryStorage';
 import { taskCompletionUtils } from '../utils/taskCompletionStorage';
 import { taskUtils } from '../utils/taskStorage';
-import { createSpacing, createTextStyle, useTheme } from '../utils/theme';
+import { createTextStyle, useTheme } from '../utils/theme';
 import { Category, Task, TaskCompletion } from '../utils/types';
 
 export default function Home() {
@@ -13,8 +13,15 @@ export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [taskCompletions, setTaskCompletions] = useState<TaskCompletion[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [calendarDays, setCalendarDays] = useState<Date[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date());
+  const calendarDays = useMemo(() => {
+    const today = new Date();
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - 6 + index);
+      return date;
+    });
+  }, []);
 
   const loadData = async () => {
     const [loadedCategories, loadedTasks, loadedCompletions] = await Promise.all([
@@ -27,21 +34,6 @@ export default function Home() {
     setTaskCompletions(loadedCompletions);
   };
 
-  // Initialize dates after component mounts to prevent hydration mismatch
-  useEffect(() => {
-    const today = new Date();
-    setSelectedDate(today);
-    
-    // Generate calendar days
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      days.push(date);
-    }
-    setCalendarDays(days);
-  }, []);
-
   // Reload data when the screen is focused (user comes back from settings)
   useFocusEffect(
     React.useCallback(() => {
@@ -50,7 +42,6 @@ export default function Home() {
   );
 
   const styles = createStyles(theme);
-  const spacing = createSpacing(theme);
 
   const getTasksForCategory = (categoryId: string): Task[] => {
     return tasks
@@ -68,7 +59,7 @@ export default function Home() {
 
   const handleTaskToggle = async (task: Task) => {
     if (!selectedDate) return;
-    const newCompletionState = await taskCompletionUtils.toggleTaskCompletion(task.id, selectedDate);
+    await taskCompletionUtils.toggleTaskCompletion(task.id, selectedDate);
     // Reload completions to update the UI
     const updatedCompletions = await taskCompletionUtils.loadTaskCompletions();
     setTaskCompletions(updatedCompletions);
@@ -162,24 +153,6 @@ export default function Home() {
     );
   };
 
-  const CalendarComponent = () => {
-    if (!selectedDate || calendarDays.length === 0) {
-      return (
-        <View style={styles.calendarContainer}>
-          <View style={styles.calendarDays} />
-        </View>
-      );
-    }
-    
-    return (
-      <View style={styles.calendarContainer}>
-        <View style={styles.calendarDays}>
-          {calendarDays.map(renderCalendarDay)}
-        </View>
-      </View>
-    );
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -190,7 +163,11 @@ export default function Home() {
           </Text>
         </View>
         
-        <CalendarComponent />
+        <View style={styles.calendarContainer}>
+          <View style={styles.calendarDays}>
+            {calendarDays.map(renderCalendarDay)}
+          </View>
+        </View>
         
         <ScrollView 
           style={styles.scrollContainer}

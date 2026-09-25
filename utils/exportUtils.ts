@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { categoryUtils } from './categoryStorage';
 import { taskCompletionUtils } from './taskCompletionStorage';
@@ -72,17 +72,16 @@ export const exportUtils = {
       // Generate filename with current timestamp
       const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       const filename = `ninja-track-data-${timestamp}.csv`;
-      const fileUri = FileSystem.documentDirectory + filename;
+      const file = new File(Paths.document, filename);
 
       // Write file
-      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
+      file.create({ overwrite: true });
+      file.write(csvContent);
 
       // Check if sharing is available
       const isAvailable = await Sharing.isAvailableAsync();
       if (isAvailable) {
-        await Sharing.shareAsync(fileUri, {
+        await Sharing.shareAsync(file.uri, {
           mimeType: 'text/csv',
           dialogTitle: 'Export Ninja Track Data',
         });
