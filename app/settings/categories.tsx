@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
     ScrollView,
@@ -33,14 +33,14 @@ export default function Categories() {
   
   const styles = createStyles(theme);
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     const loadedCategories = await categoryUtils.loadCategories();
     setCategories(loadedCategories);
-  };
+  }, []);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const handleAddCategory = async () => {
     if (newCategoryName.trim() === '') {
@@ -202,7 +202,6 @@ export default function Categories() {
                 setIsDragging(false);
               }}
               activationDistance={20}
-              containerStyle={styles.draggableListContainer}
               scrollEnabled={false}
             />
           )}

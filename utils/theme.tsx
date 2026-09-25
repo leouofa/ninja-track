@@ -4,6 +4,9 @@
  * Monochrome-first design with polymath focus
  */
 
+import React, { createContext, useContext } from 'react';
+import { useColorScheme } from 'react-native';
+
 export interface Theme {
   colors: {
     primary: string;
@@ -223,9 +226,6 @@ export const darkTheme: Theme = {
 };
 
 // Theme context for React components
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
-
 interface ThemeContextType {
   theme: Theme;
   isDarkMode: boolean;
@@ -235,13 +235,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const colorScheme = useColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState(false); // Default to light mode to prevent hydration mismatch
+  const isDarkMode = colorScheme === 'dark';
   const theme = isDarkMode ? darkTheme : lightTheme;
-  
-  // Update theme after hydration to match actual color scheme
-  useEffect(() => {
-    setIsDarkMode(colorScheme === 'dark');
-  }, [colorScheme]);
   
   return (
     <ThemeContext.Provider value={{ theme, isDarkMode }}>

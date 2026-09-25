@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
-import React, { useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import StackedBarChart from '../components/StackedBarChart';
 import TimeGroupingToggle from '../components/TimeGroupingToggle';
@@ -24,7 +24,7 @@ export default function Reports() {
 
 
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
       const [loadedCategories, loadedTasks, loadedCompletions] = await Promise.all([
@@ -57,7 +57,7 @@ export default function Reports() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedGrouping]);
 
   // Handle grouping change
   const handleGroupingChange = async (grouping: TimeGrouping) => {
@@ -85,7 +85,7 @@ export default function Reports() {
   useFocusEffect(
     React.useCallback(() => {
       loadData();
-    }, [selectedGrouping])
+    }, [loadData])
   );
 
   // Calculate summary statistics

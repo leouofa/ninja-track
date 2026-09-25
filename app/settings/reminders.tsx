@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -31,27 +31,13 @@ export default function Reminders() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const [nextReminder, setNextReminder] = useState<Date | null>(null);
-  const [hasNotificationPermissions, setHasNotificationPermissions] = useState(false);
   
   // Temporary state for picker selections
   const [tempTime, setTempTime] = useState<string>('09:00');
 
   const styles = createStyles(theme);
 
-  useEffect(() => {
-    loadSettings();
-    checkNotificationPermissions();
-  }, []);
-
-  useEffect(() => {
-    if (settings?.enabled) {
-      loadNextReminder();
-    } else {
-      setNextReminder(null);
-    }
-  }, [settings]);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       setLoading(true);
       const loadedSettings = await reminderUtils.loadReminderSettings();
@@ -73,25 +59,26 @@ export default function Reminders() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const checkNotificationPermissions = async () => {
-    try {
-      const hasPermissions = await notificationUtils.areNotificationsEnabled();
-      setHasNotificationPermissions(hasPermissions);
-    } catch (error) {
-      console.error('Error checking notification permissions:', error);
-    }
-  };
-
-  const loadNextReminder = async () => {
+  const loadNextReminder = useCallback(async () => {
     try {
       const nextReminderDate = await notificationUtils.getNextScheduledReminder();
       setNextReminder(nextReminderDate);
     } catch (error) {
       console.error('Error loading next reminder:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  useEffect(() => {
+    if (settings?.enabled) {
+      loadNextReminder();
+    }
+  }, [loadNextReminder, settings]);
 
   const handleToggleEnabled = async (enabled: boolean) => {
     if (!settings) return;
@@ -123,7 +110,6 @@ export default function Reminders() {
           );
           return;
         }
-        setHasNotificationPermissions(true);
       }
 
       const updatedSettings = await reminderUtils.updateReminderSettings(
@@ -141,6 +127,7 @@ export default function Reminders() {
           `You will receive daily reminders at ${formatTimeDisplay(settings.time)}`
         );
       } else {
+        setNextReminder(null);
         Alert.alert(
           'Reminders Disabled',
           'You will no longer receive task tracking reminders.'

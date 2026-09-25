@@ -9,7 +9,8 @@ const isNotificationSupported = Platform.OS === 'ios' || Platform.OS === 'androi
 if (isNotificationSupported) {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
       shouldPlaySound: true,
       shouldSetBadge: false,
     }),
@@ -107,9 +108,9 @@ export const notificationUtils = {
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DAILY,
+          channelId: 'reminders',
           hour: hours,
           minute: minutes,
-          repeats: true,
         },
       });
 

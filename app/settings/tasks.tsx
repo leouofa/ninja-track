@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -33,27 +33,24 @@ export default function Tasks() {
   
   const styles = createStyles(theme);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    await Promise.all([loadTasks(), loadCategories()]);
-  };
-
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     const loadedTasks = await taskUtils.loadTasks();
     setTasks(loadedTasks);
-  };
+  }, []);
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     const loadedCategories = await categoryUtils.loadCategories();
     setCategories(loadedCategories);
-    // Set default category for new tasks
-    if (loadedCategories.length > 0 && !newTaskCategoryId) {
-      setNewTaskCategoryId(loadedCategories[0].id);
-    }
-  };
+    setNewTaskCategoryId((current) => current || loadedCategories[0]?.id || '');
+  }, []);
+
+  const loadData = useCallback(async () => {
+    await Promise.all([loadTasks(), loadCategories()]);
+  }, [loadCategories, loadTasks]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleAddTask = async () => {
     if (newTaskName.trim() === '') {
