@@ -99,4 +99,4 @@ Issues and bug reports are welcome — please [open an issue](https://github.com
 
 ## License
 
-[MIT](LICENSE) © 2025 Leonid Medovyy
+[MIT](LICENSE) © 2026 Leonid Medovyy
